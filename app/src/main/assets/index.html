@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Havret Chantier</title>
+<style>
+/* VOICE: outil de chef d'équipe, direct, lisible en plein soleil avec des gants.
+   IDEA: la fiche de chantier pliée dans la cabine du camion : métrés, bon de commande, plan de toit, planning.
+   PICTURE: le plan du toit vu du dessus, à l'échelle, avec sens de pose et palettes numérotées.
+   COLOUR and TYPE: pétrole profond, béton clair, orange flamme; Archivo + Inter.
+   LAYOUT: liste des chantiers, puis fiche en onglets : Métrés, Matériel, Palettes, Méthode, Planning, Contrôles. */
+:root{color-scheme:light dark;
+--bg:light-dark(#f4f7f7,#0b181d);--card:light-dark(#fff,#11242c);--ink:light-dark(#11222a,#e8eff1);--mut:light-dark(#53656d,#a3b5bc);
+--pet:light-dark(#0f3b4c,#0a2a36);--pet2:light-dark(#16546b,#2a7590);--con:light-dark(#eaf0f1,#16303a);--line:light-dark(#d4dde0,#24404b);--acc:#ff5a2e;--accd:light-dark(#d63d14,#ff7a55);--ok:light-dark(#2f8a57,#5cc48a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Archivo,Inter,sans-serif;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(26px,4vw,34px);font-weight:800}h2{font-size:22px;font-weight:800}h3{font-size:17px;font-weight:600}
+p{margin:0}
+header{position:sticky;top:0;z-index:20;background:var(--pet);color:#fff}
+.bar{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:60px}
+.logo{display:flex;gap:9px;align-items:center;font:800 18px Archivo,sans-serif;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 16px 90px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:10px;border:0;font:600 16px Inter,sans-serif;cursor:pointer;background:var(--acc);color:#fff;white-space:nowrap;text-decoration:none}
+.btn.gh{background:transparent;color:inherit;border:1.5px solid currentColor}.btn.sm{min-height:40px;padding:0 13px;font-size:15px}
+.btn.ic{width:44px;padding:0;background:transparent;color:#fff;font-size:22px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.list{display:grid;gap:10px;margin-top:16px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.item:hover{border-color:var(--pet2)}.item small{color:var(--mut)}
+.st{font-size:12px;font-weight:600;border-radius:20px;padding:3px 10px;background:var(--con);white-space:nowrap}
+.st.encours{background:var(--acc);color:#fff}.st.termine{background:var(--ok);color:#fff}
+.empty{text-align:center;padding:40px 16px;color:var(--mut)}
+.tabs{display:flex;gap:4px;overflow-x:auto;margin:14px -16px 0;padding:0 16px;scrollbar-width:none;position:sticky;top:60px;background:var(--bg);z-index:10;border-bottom:1px solid var(--line)}
+.tabs button{all:unset;cursor:pointer;padding:12px 12px;font-weight:600;font-size:15px;color:var(--mut);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-color:var(--acc)}.tabs button:focus-visible{outline:3px solid var(--acc)}
+.sec{margin-top:18px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+label.f{display:grid;gap:5px;font-size:14px;font-weight:600}
+label.f small{font-weight:400;color:var(--mut)}
+input.t,select.t,textarea.t{width:100%;min-height:46px;font:16px Inter,sans-serif;padding:0 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+textarea.t{padding:10px 12px;min-height:90px}
+input.n{text-align:right}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:15px}
+.chk input{width:22px;height:22px;accent-color:var(--acc);flex:none;margin-top:1px}
+.chk:has(input:checked) span{color:var(--mut);text-decoration:line-through}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi div{background:var(--pet);color:#fff;border-radius:12px;padding:12px 14px}
+.kpi span{display:block;font-size:12px;color:#bcd3da}.kpi b{font:800 26px/1.15 Archivo,sans-serif;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{font-size:12px;color:var(--mut);font-weight:600;text-align:left;padding:8px 6px 8px 0;border-bottom:1.5px solid var(--line)}
+td{padding:9px 6px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.r{text-align:right;white-space:nowrap}
+tr.cat td{background:var(--con);font-weight:700;font-size:13px;padding:6px 8px}
+.note{font-size:13px;color:var(--mut);margin-top:10px}
+.warn{background:light-dark(#fff3ee,#2a1a14);border-left:4px solid var(--acc);border-radius:8px;padding:12px 14px;font-size:15px;margin-top:12px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px}
+.plan svg{display:block;width:100%;height:auto;max-height:70vh}
+.leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin-top:12px}
+.leg div{display:flex;gap:10px;align-items:center;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.sw{width:26px;height:26px;border-radius:5px;flex:none;display:grid;place-items:center;color:#fff;font:700 12px Inter}
+.steps{counter-reset:s;display:grid;gap:10px;margin-top:12px}
+.step{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.step::before{counter-increment:s;content:counter(s);width:36px;height:36px;border-radius:50%;background:var(--pet);color:#fff;display:grid;place-items:center;font:800 17px Archivo,sans-serif}
+.step p{color:var(--mut);font-size:15px;margin-top:3px}.step .h{float:right;font-weight:600;color:var(--accd);font-size:14px;margin-left:8px}
+.day{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px}
+.day h3{display:flex;justify-content:space-between;gap:10px}
+.day ul{margin:8px 0 0;padding-left:18px;font-size:15px}.day li{margin:3px 0}
+.bars{display:grid;gap:4px;margin-top:8px}
+.bars div{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) 4.5em;gap:8px;align-items:center;font-size:13px}
+.bars i{display:block;height:12px;border-radius:3px;background:var(--pet2)}
+.save{font-size:13px;color:#cfe0e5;white-space:nowrap}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:space-between;align-items:center;z-index:15}
+.foot b{font:800 20px Archivo,sans-serif;white-space:nowrap}.foot small{display:block;color:var(--mut);font-size:12px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.thumbs img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.filebtn{position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
+.spin{display:inline-block;width:16px;height:16px;border:2.5px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px;margin-right:6px}@keyframes sp{to{transform:rotate(360deg)}}
+.ai ul{margin:6px 0 0;padding-left:18px;font-size:15px}.ai li{margin:3px 0}.ai h3{margin-top:14px}
+dialog{border:0;border-radius:16px;padding:20px;max-width:440px;width:calc(100% - 32px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:#0008}
+@media(max-width:600px){.hide-s{display:none}.tabs button{padding:12px 9px;font-size:14px}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+<button class="btn ic" id="back" type="button" aria-label="Retour" style="display:none">←</button>
+<div class="logo"><svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true"><path d="M3 13h24v4H3z" fill="#ff5a2e"/><path d="M3 18h24v3H3z" fill="#7fb6c7"/><path d="M15 2c3 4 5 6 5 8.5a5 5 0 0 1-10 0C10 8 12 6 15 2z" fill="#fff"/></svg><span id="ttl">Havret Chantier</span></div>
+<span class="save" id="save"></span>
+<button class="btn ic" id="gear" type="button" aria-label="Paramètres">⚙</button>
+</div></header>
+<main class="wrap" id="app"></main>
+<div class="foot" id="foot" style="display:none"></div>
+<dialog id="dlg"></dialog>
+
+<script>
+{
+/* ===================== PARAMÈTRES PAR DÉFAUT (modifiables dans ⚙) ===================== */
+const DEF={
+ recouv:10,            /* % de recouvrement des lés */
+ chute:5,              /* % de chute isolation et divers */
+ primaire:0.25,        /* l/m² enduit d'accrochage */
+ bidonPrim:25,         /* l par bidon */
+ pvRoul:10, pvKg:38, pvPal:30,             /* pare-vapeur bitumineux : m²/rouleau, kg, rouleaux/palette */
+ b1Roul:7.5, b1Kg:36, b1Pal:30,            /* bitume 1re couche (EP4) */
+ b2Roul:5, b2Kg:30, b2Pal:30,              /* bitume couche de surface ardoisée (EP5) */
+ gazM2:130,            /* m² de lés soudés par bouteille de propane 33 kg */
+ fpoRoul:40, fpoKg:58, fpoPal:20,          /* FPO/PVC rouleau 2 × 20 m */
+ fixM2:4.5,            /* fixations mécaniques par m² (membrane non lestée) */
+ epdmKgM2:1.4,         /* EPDM kg/m² */
+ colleM2:0.3,          /* l/m² colle de contact (relevés EPDM/FPO) */
+ resPrim:0.3, resKg:2.8, resSeau:15, voileRoul:50,  /* résine : primaire kg/m², résine kg/m², seau kg, voile m²/rouleau */
+ isoPan:0.72, isoDens:32, isoPalH:2.4, isoLay:4, /* panneaux par rang sur la palette */     /* PIR : m²/panneau (1200×600), kg/m³, hauteur palette m */
+ geoRoul:100,          /* géotextile m²/rouleau */
+ gravEp:5, gravDens:1.6,                    /* gravier : cm, t/m³ */
+ dalM2:4.2, dalKg:22, dalPal:60, plotsM2:4.4, /* dalles 50×50 : pièces/m², kg, pièces/palette, plots/m² */
+ subEp:8,              /* substrat végétalisation cm */
+ /* PRIX D'ACHAT HT (CHF) par conditionnement — indicatifs, à remplacer par vos prix fournisseur */
+ prix:{benne:650,prim:95,pv:75,isoMm:0.28,b1:95,b2:85,gaz:95,fpo:520,fix:180,colle:70,tole:38,epdm:18,jonc:90,rprim:180,res:260,voile:120,naiss:120,tp:160,geo:140,grav:95,dal:8,plots:160,natte:230,sub:180,sedum:28,nmur:110},
+ /* COÛTS */
+ tauxH:62, grue:480, depl:60, gcMl:12, fg:12, marge:15, tva:8.1, objJour:900,
+ prod:{depose:3,prim:25,pv:12,iso:10,b1:7,b2:6,fpo:9,epdm:10,res:3,rel:1.5,evac:2,geo:30,grav:6,dal:2.5,veg:4,instal:6,repli:4,controle:3}
+};
+const PRIXN={benne:"Benne 7 m³ (pièce)",prim:"Primaire bitumineux (bidon 25 l)",pv:"Pare-vapeur (rouleau)",isoMm:"Isolation PIR (CHF par m² et par mm)",b1:"Bitume EP4 (rouleau)",b2:"Bitume ardoisé EP5 (rouleau)",gaz:"Propane 33 kg (bouteille)",fpo:"FPO/PVC (rouleau)",fix:"Fixations (boîte 250)",colle:"Colle (bidon 5 l)",tole:"Tôle colaminée (barre 2 m)",epdm:"EPDM (m²)",jonc:"Bande de jonction EPDM (rouleau)",rprim:"Primaire résine (bidon 10 kg)",res:"Résine (seau)",voile:"Voile de renfort (rouleau)",naiss:"Naissance EP + crapaudine",tp:"Trop-plein de sécurité",geo:"Géotextile (rouleau)",grav:"Gravier (big bag 1 t)",dal:"Dalle 50 × 50 (pièce)",plots:"Plots (carton 50)",natte:"Natte drainante (rouleau)",sub:"Substrat (big bag 1 m³)",sedum:"Sedum (m²)",nmur:"Natte à excroissances (rouleau)"};
+const PRODN={depose:"Dépose ancienne étanchéité (m²/h)",prim:"Primaire (m²/h)",pv:"Pare-vapeur (m²/h)",iso:"Isolation (m²/h)",b1:"Bitume 1re couche (m²/h)",b2:"Bitume 2e couche (m²/h)",fpo:"Membrane FPO (m²/h)",epdm:"Membrane EPDM (m²/h)",res:"Résine (m²/h)",rel:"Relevés (ml/h, toutes couches)",evac:"Évacuation (h/pièce)",geo:"Géotextile (m²/h)",grav:"Gravier (m²/h)",dal:"Dalles sur plots (m²/h)",veg:"Végétalisation (m²/h)",instal:"Installation chantier (h)",repli:"Repli et nettoyage (h)",controle:"Contrôle final (h)"};
+const SYS={bitume:"Bitume bicouche",fpo:"Membrane FPO / PVC",epdm:"Membrane EPDM",resine:"Résine liquide"};
+const PROT={aucune:"Aucune (apparente)",gravier:"Gravier 16/32",dalles:"Dalles sur plots",vege:"Végétalisation extensive"};
+const TYPES={plat:"Toit plat",terrasse:"Terrasse / balcon",vert:"Toiture végétalisée",mur:"Murs enterrés"};
+const SIDES={gauche:"Gauche",droite:"Droite",haut:"Haut du plan",bas:"Bas du plan"};
+const COL={pv:"#7a4fbf",iso:"#d9a400",b1:"#2a2f33",b2:"#5b646a",fpo:"#8aa3ab",epdm:"#111518",res:"#2a7590",acc:"#ff5a2e",geo:"#3d8a5a",prot:"#a0927c"};
+
+let P=JSON.parse(JSON.stringify(DEF));
+let photos=[],pstat='',sample=null;
+let db=null,list=[],cur=null,tab="metres",dirty=null,local=false;
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf=(n,d=0)=>Number(n).toLocaleString('fr-CH',{maximumFractionDigits:d,minimumFractionDigits:d}).replace(/[  ’]/g,"'");
+const ceil=Math.ceil;
+const plu=(pack,n)=>{if(n<2||/^(nappe)$/.test(pack))return pack;const w=pack.split(' ');w[0]=w[0].replace(/^(.*?)(eau|s)?$/,(m,a,b)=>b==='eau'?a+'eaux':b==='s'?m:a+'s');return w.join(' ');};
+
+/* ===================== CALCULS ===================== */
+function geo(c){const L=+c.L||0,W=+c.W||0,A=c.type==="mur"?L*W:L*W;const per=c.relMl===''||c.relMl==null?2*(L+W):+c.relMl;return{L,W,A,rel:c.type==="mur"?0:per,dev:(+c.dev||0)/100};}
+function materials(c){
+ const g=geo(c),A=g.A,rec=1+P.recouv/100,ch=1+P.chute/100,relA=g.rel*g.dev,out=[];
+ const add=(cat,k,name,qty,unit,pack,packN,kg,perPal,use,pid,pu)=>out.push({cat,k,name,qty,unit,pack,packN,kg,perPal,use,pid,pu:pu!=null?pu:(P.prix[pid]||0),cost:packN*(pu!=null?pu:(P.prix[pid]||0))});
+ const isRoof=c.type!=="mur",hasIso=isRoof&&+c.iso>0,bitumeVP=hasIso||c.sys==="bitume";
+ if(c.etat==="reno")add("Préparation","dep","Benne / évacuation ancienne étanchéité",ceil(A*0.012),"m³","benne 7 m³",ceil(A*0.012/7),0,0,0,"benne");
+ if(c.sys!=="resine"&&bitumeVP){const l=(A+relA)*P.primaire;add("Préparation","acc","Primaire bitumineux (enduit d'accrochage)",l,"l","bidon "+P.bidonPrim+" l",ceil(l/P.bidonPrim),ceil(l/P.bidonPrim)*P.bidonPrim,0,1,"prim");}
+ if(hasIso){const m=(A+g.rel*0.15)*rec;add("Pare-vapeur","pv","Pare-vapeur bitumineux (EGV 3)",m,"m²","rouleau "+P.pvRoul+" m²",ceil(m/P.pvRoul),ceil(m/P.pvRoul)*P.pvKg,P.pvPal,2,"pv");
+  const m2=A*ch,np=ceil(m2/P.isoPan);const panPal=Math.max(1,P.isoLay*Math.floor(P.isoPalH/(c.iso/1000)));
+  add("Isolation","iso",`Panneaux PIR ${c.iso} mm (1200 × 600)`,m2,"m²","panneau "+P.isoPan+" m²",np,m2*c.iso/1000*P.isoDens,panPal,3,"iso",P.prix.isoMm*P.isoPan*c.iso);}
+ if(c.sys==="bitume"){const m1=(A+relA)*rec,m2=(A+relA)*rec;
+  add("Étanchéité","b1","Lé bitume SBS 1re couche (EP4)",m1,"m²","rouleau "+P.b1Roul+" m²",ceil(m1/P.b1Roul),ceil(m1/P.b1Roul)*P.b1Kg,P.b1Pal,4,"b1");
+  add("Étanchéité","b2","Lé bitume SBS ardoisé de surface (EP5)",m2,"m²","rouleau "+P.b2Roul+" m²",ceil(m2/P.b2Roul),ceil(m2/P.b2Roul)*P.b2Kg,P.b2Pal,5,"b2");}
+ if(c.sys==="fpo"){const m=(A+relA)*rec;add("Étanchéité","fpo","Membrane FPO/PVC 1,5 mm",m,"m²","rouleau "+P.fpoRoul+" m²",ceil(m/P.fpoRoul),ceil(m/P.fpoRoul)*P.fpoKg,P.fpoPal,4,"fpo");
+  if(c.prot==="aucune"&&isRoof){const n=ceil(A*P.fixM2);add("Étanchéité","acc","Fixations mécaniques + plaquettes",n,"pce","boîte 250",ceil(n/250),ceil(n/250)*9,0,4,"fix");}
+  add("Étanchéité","acc","Colle de contact relevés",Math.max(5,relA*P.colleM2*2),"l","bidon 5 l",ceil(Math.max(5,relA*P.colleM2*2)/5),ceil(Math.max(5,relA*P.colleM2*2)/5)*5,0,6,"colle");
+  add("Étanchéité","acc","Tôle colaminée (rives)",g.rel,"ml","barre 2 m",ceil(g.rel/2),ceil(g.rel/2)*3,0,6,"tole");}
+ if(c.sys==="epdm"){const m=A*1.03+relA;add("Étanchéité","epdm","Membrane EPDM 1,2 mm (sur mesure)",m,"m²","nappe",1,m*P.epdmKgM2,1,4,"epdm");
+  const l=Math.max(5,(relA+(c.prot==="aucune"?A:0))*P.colleM2);add("Étanchéité","acc",c.prot==="aucune"?"Colle EPDM (pleine surface + relevés)":"Colle de contact relevés",l,"l","bidon 5 l",ceil(l/5),ceil(l/5)*5,0,4,"colle");
+  add("Étanchéité","acc","Bande de jonction / angles préformés",g.rel,"ml","rouleau 15 m",ceil(g.rel/15),ceil(g.rel/15)*3,0,6,"jonc");}
+ if(c.sys==="resine"){const s=A+relA,kp=s*P.resPrim,kr=s*P.resKg,v=s*1.1;
+  add("Étanchéité","res","Primaire résine",kp,"kg","bidon 10 kg",ceil(kp/10),ceil(kp/10)*10,0,1,"rprim");
+  add("Étanchéité","res","Résine d'étanchéité (2 passes)",kr,"kg","seau "+P.resSeau+" kg",ceil(kr/P.resSeau),ceil(kr/P.resSeau)*P.resSeau,36,4,"res");
+  add("Étanchéité","res","Voile de renfort polyester",v,"m²","rouleau "+P.voileRoul+" m²",ceil(v/P.voileRoul),ceil(v/P.voileRoul)*8,0,4,"voile");}
+ if(c.sys==="bitume"||(c.sys!=="resine"&&bitumeVP)){const m=((hasIso?A:0)+(c.sys==="bitume"?2*(A+relA):0))*rec;if(m>0){const n=ceil(m/P.gazM2);add("Consommables","acc","Propane 33 kg",n,"bouteille","bouteille",n,n*33*2,0,2,"gaz");}}
+ if(isRoof&&c.evac>0){add("Évacuations","acc","Naissance EP + crapaudine",+c.evac,"pce","pièce",+c.evac,+c.evac*3,0,6,"naiss");add("Évacuations","acc","Trop-plein de sécurité",Math.max(1,ceil(c.evac/2)),"pce","pièce",Math.max(1,ceil(c.evac/2)),3,0,6,"tp");}
+ if(isRoof&&c.prot!=="aucune"){const m=A*rec;add("Protection","geo","Géotextile 300 g/m²",m,"m²","rouleau "+P.geoRoul+" m²",ceil(m/P.geoRoul),ceil(m/P.geoRoul)*30,0,7,"geo");}
+ if(isRoof&&c.prot==="gravier"){const t=A*P.gravEp/100*P.gravDens;add("Protection","prot","Gravier roulé 16/32",t,"t","big bag 1 t",ceil(t),ceil(t)*1000,1,8,"grav");}
+ if(isRoof&&c.prot==="dalles"){const n=ceil(A*P.dalM2*1.03),p=ceil(A*P.plotsM2);add("Protection","prot","Dalles béton 50 × 50",n,"pce","dalle",n,n*P.dalKg,P.dalPal,8,"dal");add("Protection","acc","Plots réglables",p,"pce","carton 50",ceil(p/50),ceil(p/50)*12,0,8,"plots");}
+ if(isRoof&&c.prot==="vege"){const s=A*P.subEp/100;add("Protection","prot","Natte drainante / rétention",A*rec,"m²","rouleau 25 m²",ceil(A*rec/25),ceil(A*rec/25)*20,0,8,"natte");add("Protection","prot","Substrat extensif",s,"m³","big bag 1 m³",ceil(s),ceil(s)*1100,1,8,"sub");add("Protection","prot","Plants / sedum",A,"m²","plaque",ceil(A),ceil(A)*3,0,8,"sedum");}
+ if(c.type==="mur"){const m=A*1.05;add("Protection","geo","Natte à excroissances (protection mur)",m,"m²","rouleau 20 m²",ceil(m/20),ceil(m/20)*14,0,7,"nmur");}
+ return out;
+}
+function tasks(c){
+ const g=geo(c),A=g.A,pr=P.prod,isRoof=c.type!=="mur",hasIso=isRoof&&+c.iso>0,T=[];
+ const t=(k,n,ph,d)=>{if(ph>0)T.push({k,n,ph,d});};
+ t("instal","Installation de chantier et sécurité",pr.instal,"Garde-corps ou protection anti-chute, levage des palettes, balisage, zone de stockage.");
+ if(c.etat==="reno")t("depose","Dépose de l'ancienne étanchéité",A/pr.depose,"Déposer par zones, en commençant loin des évacuations pour garder l'écoulement. Ne jamais ouvrir plus que ce qui sera refermé le soir.");
+ t("support","Contrôle du support et des pentes",Math.max(1,A/120),"Balayer, contrôler la pente (minimum 1,5 % selon SIA 271), repérer les points bas et les flaches.");
+ if(c.sys!=="resine"&&(hasIso||c.sys==="bitume"))t("prim","Primaire d'accrochage",(A+g.rel*g.dev)/pr.prim,"Au rouleau, relevés compris. Laisser sécher avant soudure.");
+ if(c.sys==="resine")t("prim","Primaire résine",(A+g.rel*g.dev)/pr.prim,"Support sec et propre ; respecter la température minimale du fabricant.");
+ if(hasIso)t("pv","Pare-vapeur",A/pr.pv,"Lés soudés en plein, remontés en périphérie au-dessus de l'isolation.");
+ if(hasIso)t("iso","Isolation",A/pr.iso,"Joints décalés, panneaux serrés, sans lacune. Ne poser que ce qui sera couvert le jour même.");
+ if(isRoof&&c.evac>0)t("evac","Évacuations et trop-plein",c.evac*pr.evac+(1),"Poser les naissances avant les lés : la membrane vient se raccorder dessus.");
+ if(c.sys==="bitume"){t("b1","1re couche bitume",A/pr.b1,"Lés du point bas vers le point haut, recouvrements dans le sens de l'eau.");t("b2","Couche de surface ardoisée",A/pr.b2,"Décaler les joints d'un demi-lé par rapport à la 1re couche.");}
+ if(c.sys==="fpo")t("fpo","Membrane FPO",A/pr.fpo,"Souder à l'air chaud, contrôler chaque soudure à la pointe.");
+ if(c.sys==="epdm")t("epdm","Membrane EPDM",A/pr.epdm,"Dérouler, laisser détendre 30 min, ajuster puis coller ou lester.");
+ if(c.sys==="resine")t("res","Résine armée (2 passes)",A/pr.res,"Pose frais sur frais avec le voile, détails et relevés en premier.");
+ if(g.rel>0)t("rel","Relevés et raccords",g.rel/pr.rel,"Relevés sur le développé prévu ("+nf(g.dev*100)+" cm), angles renforcés, fixation en tête.");
+ if(isRoof&&c.prot!=="aucune")t("geo","Géotextile",A/pr.geo,"Recouvrements 20 cm minimum.");
+ if(isRoof&&c.prot==="gravier")t("grav","Gravier",A/pr.grav,"Répartir les big bags, étaler en couche régulière.");
+ if(isRoof&&c.prot==="dalles")t("dal","Dalles sur plots",A/pr.dal,"Partir du point de repère le plus visible, régler au niveau.");
+ if(isRoof&&c.prot==="vege")t("veg","Végétalisation",A/pr.veg,"Natte, substrat, plantation ; bande stérile en gravier le long des relevés.");
+ if(c.type==="mur")t("geo","Protection du mur (natte)",A/pr.geo*2,"Avant remblayage, fixée en tête.");
+ t("controle","Contrôle final et essai",pr.controle,"Contrôle des soudures, essai d'eau si possible, photos, procès-verbal.");
+ t("repli","Repli et nettoyage",pr.repli,"Évacuation des déchets, nettoyage des chéneaux et évacuations.");
+ return T;
+}
+function plan(c){
+ const T0=tasks(c),T=[...T0.filter(x=>x.k==='instal'),...T0.filter(x=>x.k==='evac'),...T0.filter(x=>x.k!=='instal'&&x.k!=='evac')],team=Math.max(1,+c.team||2),hd=Math.max(4,+c.hday||8.5),g=geo(c),days=[];let d={h:0,items:[]};
+ /* Les couches qui ouvrent puis referment le toit sont faites par bandes : chaque soir, tout ce qui est ouvert est fermé. */
+ const GK=c.type==="mur"?[]:["depose","support","prim","pv","iso","b1","fpo","epdm","res"];
+ const grp=T.filter(x=>GK.includes(x.k)),gph=grp.reduce((s,x)=>s+x.ph,0),bands=[];
+ const push=(n,h,part)=>{d.items.push({n,h,part});d.h+=h;};
+ const next=()=>{days.push(d);d={h:0,items:[]};};
+ let groupDone=!grp.length;
+ for(const x of T){
+  if(GK.includes(x.k)){if(groupDone)continue;groupDone=true;
+   let rest=gph/team,doneA=0;
+   while(rest>0.01){let free=hd-d.h;if(free<=0.01){next();continue;}const take=Math.min(free,rest),a=g.A*take/(gph/team);
+    if(a<1&&bands.length){const lb=bands[bands.length-1];lb.a1+=a;doneA+=a;const li=days.length&&!d.items.length?days[days.length-1].items:d.items;const it=li[li.length-1];if(it)it.h+=take;d.h+=take;rest-=take;continue;}
+    bands.push({day:days.length+1,a0:doneA,a1:doneA+a});doneA+=a;
+    push(`Bande ${bands.length} · ${nf(a)} m² : ${grp.map(y=>y.n.replace(/ \(.*\)$/,'')).map(n=>n.charAt(0).toLowerCase()+n.slice(1)).join(' → ')}, refermée le soir`,take,true);rest-=take;}
+   continue;}
+  let rest=x.ph/team;
+  while(rest>0.01){const free=hd-d.h;if(free<=0.01){next();continue;}const take=Math.min(free,rest);push(x.n,take,x.ph/team>take+0.01||d.items.some(i=>i.n===x.n));rest-=take;}
+ }
+ if(d.items.length)days.push(d);
+ return{T,days,team,hd,bands,grp,total:T.reduce((s,x)=>s+x.ph,0)};
+}
+function pallets(c){
+ const M=materials(c),P1=[],P2=[];let accKg=0,accN=0;
+ for(const m of M){if(m.k==="dep")continue;
+  if(m.perPal>0){const n=ceil(m.packN/m.perPal);for(let i=0;i<n;i++){const q=i<n-1?m.perPal:m.packN-m.perPal*(n-1);(m.use>=7?P2:P1).push({k:m.k,name:m.name,q,pack:m.pack,kg:m.kg/m.packN*q,use:m.use});}}
+  else if(m.use<7){accKg+=m.kg;accN++;}else{(P2).push({k:m.k,name:m.name,q:m.packN,pack:m.pack,kg:m.kg,use:m.use,loose:true});}
+ }
+ if(accN)P1.push({k:"acc",name:"Palette accessoires (primaire, gaz, colles, évacuations…)",q:accN,pack:"articles",kg:accKg,use:1});
+ P1.sort((a,b)=>a.use-b.use);
+ return{P1,P2};
+}
+
+/* ===================== CHIFFRAGE ===================== */
+function cost(c){
+ const M=materials(c),pl=plan(c),g=geo(c),{P2}=c.type==="mur"?{P2:[]}:pallets(c);
+ const mat=M.reduce((s,m)=>s+m.cost,0),h=pl.total,mo=h*P.tauxH,jours=pl.days.length;
+ const livr=c.type==="mur"?1:(P2.length?2:1);
+ const L=[["Levage / camion-grue",livr,"livraison",P.grue],["Déplacements équipe",jours,"jour",P.depl*Math.max(1,pl.team/2)]];
+ if(!c.garde&&c.type!=="mur")L.push(["Garde-corps de chantier (location)",Math.ceil(2*(g.L+g.W)),"ml",P.gcMl]);
+ const log=L.reduce((s,x)=>s+x[1]*x[3],0),direct=mat+mo+log,fg=direct*P.fg/100,rev=direct+fg,marge=rev*P.marge/100,ht=rev+marge,tva=ht*P.tva/100;
+ return{M,L,mat,mo,h,log,fg,rev,marge,ht,tva,ttc:ht+tva,jours,pl,m2:g.A?ht/g.A:0,parJour:jours?marge/jours:0,venteJour:jours?ht/jours:0};
+}
+const DJ=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"],MO=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+function workDates(start,n){const out=[];if(!start)return out;let d=new Date(start+"T08:00");if(isNaN(d))return out;while(out.length<n){if(d.getDay()!==0&&d.getDay()!==6)out.push(new Date(d));d.setDate(d.getDate()+1);}return out;}
+const fdate=d=>`${DJ[d.getDay()].charAt(0).toUpperCase()+DJ[d.getDay()].slice(1)} ${d.getDate()} ${MO[d.getMonth()]}`;
+const chf=n=>"CHF "+nf(n);
+
+/* ===================== PLAN DU TOIT (SVG à l'échelle) ===================== */
+function roofSVG(c,P1,bands){
+ const g=geo(c),L=Math.max(g.L,1),W=Math.max(g.W,1),m=1.5,bas=c.bas||"gauche",lift=c.lift||"bas";
+ const axisX=bas==="gauche"||bas==="droite";
+ /* zone de stockage : bande côté point haut (opposé au point bas), retrait du bord */
+ const edge=c.garde?0.6:2,pw=1.2,pd=1.0,gap=0.8;
+ const bandLen=axisX?W:L, cnt=P1.length;
+ const perRow=Math.max(1,Math.floor((bandLen-2*edge+gap)/(pw+gap)));
+ const pos=[];
+ for(let i=0;i<cnt;i++){const row=Math.floor(i/perRow),col=i%perRow;
+  const along=edge+col*(pw+gap), deep=edge+row*(pd+1.2);
+  let x,y,w,h;
+  if(axisX){w=pd;h=pw;y=along;x=bas==="gauche"?L-deep-pd:deep;}else{w=pw;h=pd;x=along;y=bas==="haut"?W-deep-pd:deep;}
+  pos.push({x,y,w,h});}
+ /* ordre : le plus près du point de levage reçoit les premières palettes utilisées */
+ const liftPt={gauche:[0,W/2],droite:[L,W/2],haut:[L/2,0],bas:[L/2,W]}[lift];
+ const order=pos.map((p,i)=>({i,d:Math.hypot(p.x+p.w/2-liftPt[0],p.y+p.h/2-liftPt[1])})).sort((a,b)=>a.d-b.d);
+ const placed=P1.map((p,k)=>({...p,...pos[order[k].i],n:k+1}));
+ const fs=Math.max(0.45,Math.min(L,W)/18);
+ let s=`<svg viewBox="${-m} ${-m} ${L+2*m} ${W+2*m}" role="img" aria-label="Plan du toit vu du dessus avec palettes">
+ <rect x="0" y="0" width="${L}" height="${W}" fill="#3b4348" stroke="#11222a" stroke-width="${fs*0.25}"/>`;
+ /* sens de pose : flèches du point bas vers le point haut */
+ const arr=[];for(let k=1;k<=3;k++){const f=k/4;if(axisX){const y=W*f,x0=bas==="gauche"?L*0.08:L*0.92,x1=bas==="gauche"?L*0.55:L*0.45;arr.push([x0,y,x1,y]);}else{const x=L*f,y0=bas==="haut"?W*0.08:W*0.92,y1=bas==="haut"?W*0.55:W*0.45;arr.push([x,y0,x,y1]);}}
+ s+=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a2e"/></marker></defs>`;
+ s+=arr.map(a=>`<line x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}" stroke="#ff5a2e" stroke-width="${fs*0.22}" stroke-dasharray="${fs*0.6} ${fs*0.35}" marker-end="url(#ah)"/>`).join('');
+ /* bandes quotidiennes, depuis le point bas */
+ (bands||[]).forEach((b,i)=>{if(i===bands.length-1)return;const f=b.a1/Math.max(geo(c).A,1);
+  if(axisX){const x=bas==="gauche"?L*f:L*(1-f);s+=`<line x1="${x}" y1="0" x2="${x}" y2="${W}" stroke="#7fb6c7" stroke-width="${fs*0.1}" stroke-dasharray="${fs*0.3} ${fs*0.3}"/><text x="${x+(bas==="gauche"?-1:1)*fs*0.3}" y="${W-fs*0.4}" text-anchor="${bas==="gauche"?"end":"start"}" font-size="${fs*0.75}" font-family="Inter" fill="#7fb6c7">B${i+1}</text>`;}
+  else{const y=bas==="haut"?W*f:W*(1-f);s+=`<line x1="0" y1="${y}" x2="${L}" y2="${y}" stroke="#7fb6c7" stroke-width="${fs*0.1}" stroke-dasharray="${fs*0.3} ${fs*0.3}"/><text x="${fs*0.4}" y="${y+(bas==="haut"?-1:1)*fs*0.3+(bas==="haut"?0:fs*0.6)}" font-size="${fs*0.75}" font-family="Inter" fill="#7fb6c7">B${i+1}</text>`;}});
+ /* évacuations sur le côté bas */
+ const ne=Math.max(0,+c.evac||0);for(let k=0;k<ne;k++){const f=(k+1)/(ne+1);const ex=axisX?(bas==="gauche"?0.6:L-0.6):L*f,ey=axisX?W*f:(bas==="haut"?0.6:W-0.6);s+=`<circle cx="${ex}" cy="${ey}" r="${fs*0.55}" fill="#5fa6bd" stroke="#fff" stroke-width="${fs*0.12}"/>`;}
+ /* départ */
+ const st=axisX?[bas==="gauche"?0.3:L-0.3,W*0.5]:[L*0.5,bas==="haut"?0.3:W-0.3];
+ s+=`<circle cx="${st[0]}" cy="${st[1]}" r="${fs*0.9}" fill="#2f8a57" stroke="#fff" stroke-width="${fs*0.15}"/><text x="${st[0]}" y="${st[1]+fs*0.35}" text-anchor="middle" font-size="${fs}" font-family="Inter" font-weight="700" fill="#fff">D</text>`;
+ /* levage */
+ s+=`<g transform="translate(${liftPt[0]} ${liftPt[1]})"><rect x="${-fs}" y="${-fs}" width="${fs*2}" height="${fs*2}" rx="${fs*0.3}" fill="#ff5a2e"/><text y="${fs*0.4}" text-anchor="middle" font-size="${fs*1.1}" font-family="Inter" font-weight="700" fill="#fff">G</text></g>`;
+ /* palettes */
+ s+=placed.map(p=>`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" fill="${COL[p.k]||'#888'}" stroke="#fff" stroke-width="${fs*0.1}"/><text x="${p.x+p.w/2}" y="${p.y+p.h/2+fs*0.33}" text-anchor="middle" font-size="${fs*0.95}" font-family="Inter" font-weight="700" fill="#fff">${p.n}</text>`).join('');
+ s+=`<text x="${L/2}" y="${-m*0.35}" text-anchor="middle" font-size="${fs*0.9}" font-family="Inter" fill="currentColor">${nf(L,1)} m</text><text x="${-m*0.35}" y="${W/2}" text-anchor="middle" font-size="${fs*0.9}" font-family="Inter" fill="currentColor" transform="rotate(-90 ${-m*0.35} ${W/2})">${nf(W,1)} m</text></svg>`;
+ const over=cnt>perRow*Math.max(1,Math.floor(((axisX?L:W)*0.45-edge)/(pd+1.2)));
+ return{svg:s,placed,over};
+}
+
+/* ===================== STOCKAGE ===================== */
+const LS='havret-chantiers';
+async function initDb(){
+ try{db=window.claude&&window.claude.use?await window.claude.use('db'):null;}catch(_){db=null;}
+ if(!db){local=true;try{list=JSON.parse(localStorage.getItem(LS)||'[]');}catch(_){list=[];}try{const p=JSON.parse(localStorage.getItem(LS+'-p')||'null');if(p)P=merge(p);}catch(_){}render();return;}
+ const t=setTimeout(()=>{$('#save').textContent='Hors ligne ?';},10000);
+ db.collection('chantiers').onSnapshot(s=>{clearTimeout(t);list=s.docs.map(d=>({...d.data(),id:d.id}));if(cur){const n=list.find(x=>x.id===cur.id);if(n&&!dirty)cur=JSON.parse(JSON.stringify(n));}if(!document.activeElement||!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))render();},e=>{clearTimeout(t);$('#save').textContent='Erreur de synchro';});
+ db.doc('config/params').onSnapshot(s=>{if(s.exists){P=merge(s.data());if(cur)render();}},()=>{});
+}
+const merge=p=>({...JSON.parse(JSON.stringify(DEF)),...p,prod:{...DEF.prod,...(p.prod||{})},prix:{...DEF.prix,...(p.prix||{})}});
+let saving=Promise.resolve();
+function persist(){
+ if(!cur)return;cur.updated=Date.now();const c=JSON.parse(JSON.stringify(cur));
+ const i=list.findIndex(x=>x.id===c.id);if(i<0)list.unshift(c);else list[i]=c;
+ if(local){try{localStorage.setItem(LS,JSON.stringify(list));$('#save').textContent='✓';}catch(_){$('#save').textContent='Non enregistré';}return;}
+ $('#save').textContent='…';
+ saving=saving.then(()=>db.doc('chantiers/'+c.id).set(c)).then(()=>{$('#save').textContent='✓';dirty=null;},e=>{$('#save').textContent=e&&e.code==='quota_exceeded'?'Stockage plein':'Non enregistré';});
+}
+let tmr=null;const queue=()=>{dirty=1;clearTimeout(tmr);tmr=setTimeout(persist,700);};
+async function delChantier(id){list=list.filter(x=>x.id!==id);if(local){try{localStorage.setItem(LS,JSON.stringify(list));}catch(_){}}else{try{await db.doc('chantiers/'+id).delete();}catch(_){}}cur=null;render();}
+async function saveParams(){if(local){try{localStorage.setItem(LS+'-p',JSON.stringify(P));}catch(_){}return;}try{await db.doc('config/params').set(P);}catch(_){}}
+
+/* ===================== ÉCRANS ===================== */
+const NEW=()=>({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom:'',client:'',adresse:'',date:'',statut:'prevu',type:'plat',etat:'reno',L:12,W:8,dev:40,relMl:'',sys:'bitume',iso:160,evac:2,prot:'gravier',bas:'gauche',lift:'bas',garde:false,team:2,hday:8.5,start:'',check:{},notes:'',updated:Date.now()});
+const STAT={prevu:"Prévu",encours:"En cours",termine:"Terminé"};
+
+function render(){
+ $('#back').style.display=cur?'inline-flex':'none';
+ $('#ttl').textContent=cur?(cur.nom||'Nouveau chantier'):'Havret Chantier';
+ if(!cur){$('#foot').style.display='none';return renderList();}
+ renderChantier();
+}
+function renderList(){
+ const L=[...list].sort((a,b)=>(b.updated||0)-(a.updated||0));
+ app.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h1>Mes chantiers</h1><button class="btn" id="add" type="button">+ Nouveau chantier</button></div>
+ ${local?`<div class="warn">Les chantiers sont enregistrés seulement sur cet appareil.</div>`:''}
+ ${window.Android?`<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="exp">Sauvegarder mes chantiers</button><button class="btn gh sm" type="button" id="imp">Restaurer</button></div>`:''}<div class="list">${L.length?L.map(c=>{const g=geo(c);return `<button class="card item" data-open="${esc(c.id)}" type="button"><div><h3>${esc(c.nom||'Sans nom')}</h3><small>${esc([c.client,c.adresse].filter(Boolean).join(' · ')||TYPES[c.type])} · ${nf(g.A)} m² · ${SYS[c.sys]}</small></div><span class="st ${c.statut}">${STAT[c.statut]}</span></button>`;}).join(''):`<div class="card empty"><h2>Aucun chantier</h2><p style="margin-top:8px">Créez votre premier chantier : entrez la longueur, la largeur et le développé des relevés, l'application calcule le reste.</p></div>`}</div>`;
+ if($('#exp'))$('#exp').onclick=()=>window.Android.share(JSON.stringify({havret:1,list,params:P}));
+ if($('#imp'))$('#imp').onclick=()=>{const d=$('#dlg');d.innerHTML=`<h2>Restaurer</h2><p class="note">Collez ici le texte de sauvegarde.</p><textarea class="t" id="bk" style="min-height:140px"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn gh sm" type="button" id="bno">Annuler</button><button class="btn sm" type="button" id="bok">Restaurer</button></div>`;d.showModal();$('#bno').onclick=()=>d.close();$('#bok').onclick=()=>{try{const o=JSON.parse($('#bk').value);if(!o.havret)throw 0;const ids=new Set(list.map(x=>x.id));list=[...list,...o.list.filter(x=>!ids.has(x.id))];if(o.params)P=merge(o.params);localStorage.setItem(LS,JSON.stringify(list));localStorage.setItem(LS+'-p',JSON.stringify(P));d.close();render();}catch(_){$('#bk').style.borderColor='var(--acc)';}};};
+ $('#add').onclick=()=>{cur=NEW();tab="metres";persist();render();};
+}
+const sel=(id,obj,v)=>`<select class="t" id="${id}">${Object.entries(obj).map(([k,n])=>`<option value="${k}" ${String(v)===String(k)?'selected':''}>${n}</option>`).join('')}</select>`;
+const fld=(id,label,v,o={})=>`<label class="f">${label}${o.hint?` <small>${o.hint}</small>`:''}<input class="t${o.num?' n':''}" id="${id}" ${o.num?`type="number" inputmode="decimal" step="any" min="0"`:''} value="${esc(v)}" ${o.ph?`placeholder="${o.ph}"`:''}></label>`;
+
+function renderChantier(){
+ const c=cur,g=geo(c),pl=plan(c);
+ const TABS={metres:"Métrés",chiffrage:"Chiffrage",materiel:"Matériel",planning:"Planning",palettes:"Palettes",methode:"Méthode",controles:"Contrôles"};
+ let h=`<div class="kpi"><div><span>Surface</span><b>${nf(g.A)} m²</b></div><div><span>Relevés</span><b>${nf(g.rel,1)} ml</b></div><div><span>Durée (${pl.team} pers.)</span><b>${nf(pl.days.length)} j</b></div><div><span>Prix de vente HT</span><b>${chf(cost(c).ht)}</b></div></div>
+ <nav class="tabs" role="tablist">${Object.entries(TABS).map(([k,n])=>`<button type="button" role="tab" data-tab="${k}" class="${tab===k?'on':''}" aria-selected="${tab===k}">${n}</button>`).join('')}</nav><div class="sec">`;
+ if(tab==="metres")h+=vMetres(c,g);
+ if(tab==="chiffrage")h+=vCost(c);
+ if(tab==="materiel")h+=vMat(c);
+ if(tab==="palettes")h+=vPal(c);
+ if(tab==="methode")h+=vMeth(c,pl);
+ if(tab==="planning")h+=vPlan(c,pl);
+ if(tab==="controles")h+=vCtrl(c);
+ app.innerHTML=h+'</div>';
+ const f=$('#foot');f.style.display='flex';f.innerHTML=`<div><small>${esc(TYPES[c.type])} · ${SYS[c.sys]}</small><b>${chf(cost(c).ht)} HT · ${pl.days.length} j</b></div><button class="btn sm" type="button" id="copy">${window.Android?'Envoyer la commande':'Copier la commande'}</button>`;
+ $('#copy').onclick=copyOrder;
+}
+function vPhoto(c){return `<div class="card" style="border:2px dashed var(--pet2)"><h2>Photo du toit</h2><p class="note" style="margin-top:4px">Prenez le toit en photo, entrez les côtés plus bas : l'analyse remplit la composition et l'application calcule tout.</p>
+ <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><label class="btn sm filebtn">Prendre une photo<input type="file" accept="image/*" capture="environment" data-photo="1"></label><label class="btn gh sm filebtn">Galerie<input type="file" accept="image/*" multiple data-photo="1"></label></div>
+ <div class="thumbs" id="thumbs">${photos.map(p=>`<img src="${p.url}" alt="Photo du chantier">`).join('')}</div>
+ ${photos.length?`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" type="button" id="analyse">Analyser ${photos.length>1?'les '+photos.length+' photos':'la photo'}</button><button class="btn gh sm" type="button" id="clearph">Effacer</button></div>`:''}
+ <p class="note" id="pstat">${pstat}</p></div>
+ ${c.ai?`<div class="card sec ai"><h2>Analyse de la photo</h2><p style="margin-top:6px">${esc(c.ai.resume)}</p>
+ ${[['Ce qu\'on voit',c.ai.obs],['Défauts et risques',c.ai.risques],['Pour être conforme (SIA 271)',c.ai.conf],['Conseils d\'exécution',c.ai.conseils]].filter(x=>x[1]&&x[1].length).map(x=>`<h3>${x[0]}</h3><ul>${x[1].map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}
+ <p class="note">Composition remplie automatiquement : vérifiez-la ci-dessous. Analyse indicative, à confirmer sur place.</p></div>`:''}`;}
+function vMetres(c,g){return vPhoto(c)+`<div class="card sec"><h2>Le chantier</h2><div class="g2" style="margin-top:12px">
+ ${fld('nom','Nom du chantier',c.nom,{ph:'Ex. : Garage Dupont'})}${fld('client','Client',c.client)}${fld('adresse','Adresse',c.adresse)}<label class="f">Début des travaux<input class="t" type="date" id="start" value="${esc(c.start||'')}"></label>
+ <label class="f">Statut${sel('statut',STAT,c.statut)}</label></div></div>
+ <div class="card sec"><h2>Dimensions</h2><div class="g2" style="margin-top:12px">
+ ${fld('L',c.type==='mur'?'Longueur du mur (m)':'Longueur (m)',c.L,{num:1})}${fld('W',c.type==='mur'?'Hauteur enterrée (m)':'Largeur (m)',c.W,{num:1})}
+ ${c.type==='mur'?'':fld('dev','Développé des relevés (cm)',c.dev,{num:1,hint:'remontée + retour sur l\'acrotère'})}
+ ${c.type==='mur'?'':fld('relMl','Longueur des relevés (ml)',c.relMl,{num:1,ph:'Périmètre : '+nf(2*((+c.L||0)+(+c.W||0)),1),hint:'vide = tout le périmètre'})}
+ </div></div>
+ <div class="card sec"><h2>Composition</h2><div class="g2" style="margin-top:12px">
+ <label class="f">Type d'ouvrage${sel('type',TYPES,c.type)}</label>
+ <label class="f">Support${sel('etat',{neuf:"Neuf",reno:"Rénovation (dépose)"},c.etat)}</label>
+ <label class="f">Système${sel('sys',c.type==='mur'?{bitume:SYS.bitume,resine:SYS.resine}:SYS,c.sys)}</label>
+ ${c.type==='mur'?'':`<label class="f">Isolation PIR${sel('iso',{0:"Sans",100:"100 mm",120:"120 mm",140:"140 mm",160:"160 mm",180:"180 mm",200:"200 mm",240:"240 mm"},c.iso)}</label>
+ <label class="f">Protection${sel('prot',PROT,c.prot)}</label>${fld('evac',"Évacuations (pièces)",c.evac,{num:1})}`}
+ </div></div>
+ ${c.type==='mur'?'':`<div class="card sec"><h2>Organisation</h2><div class="g2" style="margin-top:12px">
+ <label class="f">Côté point bas (évacuations)${sel('bas',SIDES,c.bas)}</label><label class="f">Côté levage (grue / monte-charge)${sel('lift',SIDES,c.lift)}</label>
+ ${fld('team','Équipe (personnes)',c.team,{num:1})}${fld('hday','Heures par jour',c.hday,{num:1})}
+ <label class="chk" style="border:0"><input type="checkbox" id="garde" ${c.garde?'checked':''}><span>Garde-corps ou acrotère protecteur sur tout le périmètre</span></label></div></div>`}
+ <div class="card sec"><label class="f">Notes<textarea class="t" id="notes">${esc(c.notes)}</textarea></label></div>
+ <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="dup">Dupliquer</button><button class="btn gh sm" type="button" id="del" style="color:var(--accd)">Supprimer</button></div>`;}
+function vMat(c){const M=materials(c);let cat='',rows='',kg=0;
+ for(const m of M){if(m.cat!==cat){cat=m.cat;rows+=`<tr class="cat"><td colspan="3">${cat}</td></tr>`;}kg+=m.kg;
+  rows+=`<tr><td>${m.name}<br><small style="color:var(--mut)">${nf(m.qty,m.unit==='t'||m.unit==='m³'?1:0)} ${m.unit}</small></td><td class="r"><b>${nf(m.packN)}</b></td><td>${plu(m.pack,m.packN)}<br><small style="color:var(--mut)">${chf(m.cost)}</small></td></tr>`;}
+ return `<div class="card"><h2>Liste de matériel</h2><p class="note" style="margin-top:4px">Quantités avec ${P.recouv} % de recouvrement et ${P.chute} % de chute, relevés compris (développé ${nf(c.dev)} cm). Conditionnements modifiables dans ⚙.</p>
+ <table style="margin-top:10px"><thead><tr><th>Article</th><th class="r">Qté</th><th>Conditionnement</th></tr></thead><tbody>${rows}</tbody></table>
+ <p style="margin-top:12px;font-weight:600">Poids total livré : ${nf(kg/1000,1)} t · Achat matériel : ${chf(M.reduce((s,m)=>s+m.cost,0))} HT</p></div>`;}
+function vPal(c){
+ if(c.type==="mur")return `<div class="card"><h2>Livraison</h2><p style="margin-top:8px">Pour des murs enterrés, faites livrer au pied de la fouille, côté accès, à l'abri de l'eau et des engins. Matériel de la journée seulement dans la fouille.</p></div>`;
+ const {P1,P2}=pallets(c),R=roofSVG(c,P1,plan(c).bands);const kg1=P1.reduce((s,p)=>s+p.kg,0),kg2=P2.reduce((s,p)=>s+p.kg,0);
+ return `<h2>Plan de livraison sur le toit</h2>
+ <p class="note" style="margin-top:4px">Vue du dessus à l'échelle. <b style="color:var(--ok)">D</b> = départ des travaux au point bas · <b style="color:var(--acc)">G</b> = point de levage · flèches = sens de pose · ronds bleus = évacuations · pointillés = bandes de travail par jour (B1, B2…).</p>
+ <div class="plan" style="margin-top:10px">${R.svg}</div>
+ <div class="leg">${R.placed.map(p=>`<div><span class="sw" style="background:${COL[p.k]||'#888'}">${p.n}</span><span><b>${esc(p.name)}</b><br><small style="color:var(--mut)">${nf(p.q)} ${plu(p.pack,p.q).split(' ')[0]} · ${nf(p.kg)} kg</small></span></div>`).join('')}</div>
+ ${R.over?`<div class="warn">Le toit est petit pour autant de palettes : faites livrer en deux fois (étanchéité d'abord, isolation ensuite) ou stockez une partie au sol.</div>`:''}
+ <div class="card sec"><h3>Pourquoi cette disposition</h3><ul style="margin:8px 0 0;padding-left:18px;font-size:15px;color:var(--mut)">
+ <li>Les palettes sont posées le long du <b>point haut</b> : vous attaquez au point bas, loin d'elles, et elles ne gênent qu'en fin de couche.</li>
+ <li>Elles sont numérotées <b>dans l'ordre d'utilisation</b> : n° 1 au plus près du levage, celles qui servent en premier sont les plus faciles à reprendre.</li>
+ <li>Retrait de <b>${c.garde?'0,6':'2'} m</b> du bord ${c.garde?'(garde-corps présent)':'(sans protection collective, rester hors de la zone de chute)'} et 0,8 m entre palettes pour circuler avec les rouleaux.</li>
+ <li>Posez les palettes <b>au droit des murs porteurs ou des sommiers</b>, jamais en milieu de portée, et vérifiez la charge admissible de la dalle.</li>
+ <li>Isolation : bâcher et lester, elle s'envole et craint l'eau.</li></ul></div>
+ <div class="card sec"><h3>Livraison 1 · avant le jour 1 · ${nf(kg1/1000,1)} t</h3><p class="note">${P1.length} palettes. Commandez un camion-grue capable de lever la palette la plus lourde (${nf(Math.max(0,...P1.map(p=>p.kg)))} kg) à la distance du point G.</p></div>
+ ${P2.length?`<div class="card sec"><h3>Livraison 2 · après l'étanchéité · ${nf(kg2/1000,1)} t</h3><ul style="margin:8px 0 0;padding-left:18px;font-size:15px">${Object.values(P2.reduce((o,p)=>{(o[p.name]=o[p.name]||{name:p.name,pack:p.pack,q:0,kg:0,n:0});o[p.name].q+=p.q;o[p.name].kg+=p.kg;o[p.name].n++;return o;},{})).map(p=>`<li>${esc(p.name)} · ${nf(p.q)} ${plu(p.pack,p.q)} · ${nf(p.kg)} kg</li>`).join('')}</ul><p class="note">Ne pas livrer gravier, dalles ou substrat avant la fin de l'étanchéité : charges lourdes, à répartir au-dessus des porteurs, sur protection (géotextile, panneaux).</p></div>`:''}`;}
+function vMeth(c,pl){const g=geo(c),bas=SIDES[c.bas||'gauche'].toLowerCase();
+ return `<div class="warn" style="margin-top:0"><b>Par où commencer :</b> ${c.type==='mur'?'par le point le plus bas du mur, angle par angle, en remontant.':`au <b>point bas, côté ${bas}</b>, à l'évacuation. Les lés se posent du point bas vers le point haut, perpendiculairement à la pente : chaque lé recouvre celui d'en dessous, l'eau passe par-dessus les recouvrements, jamais contre.`}</div>
+ <div class="steps">${pl.T.map(t=>`<div class="step"><div><span class="h">${nf(t.ph/pl.team,1)} h</span><h3>${t.n}</h3><p>${t.d}</p></div></div>`).join('')}</div>
+ <div class="card sec"><h3>Gagner du temps</h3><ul style="margin:8px 0 0;padding-left:18px;font-size:15px;color:var(--mut)">
+ ${pl.grp.length?`<li><b>Travaillez par bandes complètes</b> : ${pl.grp.map(y=>y.n.charAt(0).toLowerCase()+y.n.slice(1)).join(', ')} sur une même bande le même jour. Avec votre équipe, une journée pleine ferme environ <b>${nf(pl.team*pl.hd/Math.max(pl.grp.reduce((s,x)=>s+x.ph,0),0.01)*geo(c).A)} m²</b>${(()=>{const side=(c.bas==='gauche'||c.bas==='droite')?geo(c).W:geo(c).L;return side?`, soit une bande d'environ ${nf(pl.team*pl.hd/Math.max(pl.grp.reduce((s,x)=>s+x.ph,0),0.01)*geo(c).A/side,1)} m de large depuis le point bas`:'';})()}. Le soir, tout ce qui est ouvert est fermé.</li>`:''}
+ <li><b>Préparez les détails à l'avance</b> : découpez les pièces d'angle et les bandes de relevés au sol le premier matin, pendant le levage.</li>
+ <li><b>Un poseur, un aide</b> : l'aide prépare et déroule le lé suivant pendant que le poseur soude.</li>
+ <li><b>Relevés en fin de surface courante</b>, sauf s'il pleut : alors fermez d'abord les relevés de la zone ouverte.</li>
+ <li><b>Météo</b> : surface sèche obligatoire. Gardez ${c.sys==='resine'?'les journées tempérées pour la résine':'une bâche et des lests à portée de main'}.</li></ul></div>`;}
+function vCost(c){const k=cost(c),rows=(a)=>a.map(r=>`<tr><td>${r[0]}</td><td class="r">${r[1]}</td></tr>`).join('');
+ const ok=k.parJour>=P.objJour;
+ return `<div class="kpi"><div><span>Prix de vente HT</span><b>${chf(k.ht)}</b></div><div><span>Prix au m² HT</span><b>${chf(k.m2)}</b></div><div><span>Marge nette</span><b>${chf(k.marge)}</b></div><div style="background:${ok?'var(--ok)':'var(--acc)'}"><span>Marge par jour</span><b>${chf(k.parJour)}</b></div></div>
+ ${ok?'':`<div class="warn">Marge par jour sous votre objectif (${chf(P.objJour)}). Pistes : équipe de 3 pour raccourcir le chantier, monter la marge, ou revoir le système proposé.</div>`}
+ <div class="card sec"><h2>Détail du prix</h2><table style="margin-top:10px"><tbody>
+ <tr class="cat"><td colspan="2">Matériel (prix d'achat)</td></tr>${rows(k.M.map(m=>[`${m.name} <small style="color:var(--mut)">· ${nf(m.packN)} × ${chf(m.pu)}</small>`,chf(m.cost)]))}
+ <tr><td><b>Total matériel</b></td><td class="r"><b>${chf(k.mat)}</b></td></tr>
+ <tr class="cat"><td colspan="2">Main-d'œuvre</td></tr>${rows(k.pl.T.map(t=>[`${t.n} <small style="color:var(--mut)">· ${nf(t.ph,1)} h</small>`,chf(t.ph*P.tauxH)]))}
+ <tr><td><b>Total main-d'œuvre</b> <small style="color:var(--mut)">${nf(k.h)} h × ${chf(P.tauxH)}</small></td><td class="r"><b>${chf(k.mo)}</b></td></tr>
+ <tr class="cat"><td colspan="2">Logistique</td></tr>${rows(k.L.map(l=>[`${l[0]} <small style="color:var(--mut)">· ${nf(l[1])} ${l[2]}${l[1]>1?'s':''} × ${chf(l[3])}</small>`,chf(l[1]*l[3])]))}
+ <tr class="cat"><td colspan="2">Synthèse</td></tr>
+ ${rows([["Coûts directs",chf(k.mat+k.mo+k.log)],[`Frais généraux ${nf(P.fg)} %`,chf(k.fg)],["<b>Prix de revient</b>",`<b>${chf(k.rev)}</b>`],[`Marge ${nf(P.marge)} %`,chf(k.marge)],["<b>Prix de vente HT</b>",`<b>${chf(k.ht)}</b>`],[`TVA ${nf(P.tva,1)} %`,chf(k.tva)],["<b>Total TTC</b>",`<b>${chf(k.ttc)}</b>`]])}
+ </tbody></table><p class="note">Prix d'achat, taux horaire, frais et marge réglables dans ⚙. Le prix de vente inclut tout : c'est le montant à mettre dans l'offre.</p></div>
+ <div class="card sec"><h3>Quelle équipe est la plus rentable ?</h3><table style="margin-top:8px"><thead><tr><th>Équipe</th><th class="r">Durée</th><th class="r">Marge / jour</th></tr></thead><tbody>${[2,3,4].map(n=>{const x=cost({...c,team:n});return `<tr${n==(+c.team||2)?' style="font-weight:700"':''}><td>${n} personnes</td><td class="r">${x.jours} j</td><td class="r" style="color:${x.parJour>=P.objJour?'var(--ok)':'inherit'}">${chf(x.parJour)}</td></tr>`;}).join('')}</tbody></table><p class="note">Même nombre d'heures, mais un chantier plus court libère l'équipe pour le suivant : c'est la marge par jour qui compte.</p></div>
+ <div class="card sec"><h3>Répartition du prix</h3><div class="bars" style="margin-top:10px">${[["Matériel",k.mat],["Main-d'œuvre",k.mo],["Logistique",k.log],["Frais généraux",k.fg],["Marge",k.marge]].map(x=>`<div><span>${x[0]}</span><i style="width:${Math.max(1,x[1]/k.ht*100)}%;background:${x[0]==='Marge'?'var(--ok)':'var(--pet2)'}"></i><span class="r">${nf(x[1]/k.ht*100)} %</span></div>`).join('')}</div></div>`;}
+function vPlan(c,pl){
+ const k=cost(c),D=workDates(c.start,pl.days.length),g=geo(c),{P2}=c.type==="mur"?{P2:[]}:pallets(c);
+ const geoDay=pl.days.findIndex(d=>d.items.some(i=>/Géotextile|Gravier|Dalles|Végétalisation/.test(i.n)));
+ const lastDep=pl.days.reduce((a,d,i)=>d.items.some(x=>/Bande|Dépose/.test(x.n))?i:a,-1);
+ let cumul=0;
+ return `<div class="card"><h2>Planning jour par jour</h2><p class="note" style="margin-top:4px">${pl.team} personne${pl.team>1?'s':''}, ${nf(pl.hd,1)} h par jour, week-ends exclus, sans les intempéries.${c.start?'':' <b>Indiquez la date de début dans Métrés pour voir les jours datés.</b>'}</p>
+ <div class="kpi" style="margin-top:12px"><div><span>Chiffre d'affaires par jour</span><b>${chf(k.venteJour)}</b></div><div style="background:${k.parJour>=P.objJour?'var(--ok)':'var(--acc)'}"><span>Marge par jour</span><b>${chf(k.parJour)}</b></div>${D.length?`<div><span>Fin prévue</span><b style="font-size:20px">${fdate(D[D.length-1])}</b></div>`:''}</div></div>
+ ${pl.days.map((d,i)=>{const share=d.h/(pl.total/pl.team||1);cumul+=share*k.ht;const band=d.items.filter(x=>/^Bande/.test(x.n));const m2=band.reduce((s,x)=>s+(+(x.n.match(/· ([\d']+) m²/)||[0,'0'])[1].replace(/'/g,'')),0);
+  const log=[];if(i===0){log.push("7 h 00 · livraison 1 au camion-grue, levage des palettes selon le plan");if(c.etat==="reno")log.push("Benne en place avant l'arrivée de l'équipe");}
+  if(P2.length&&i===Math.max(0,geoDay))log.push("Livraison 2 (protection) le matin, répartie au-dessus des porteurs");
+  if(c.etat==="reno"&&i===lastDep+1)log.push("Faire enlever la benne");
+  if(i===pl.days.length-1)log.push("Réception avec le client, procès-verbal et photos");
+  return `<div class="day"><h3><span>${D[i]?fdate(D[i]):'Jour '+(i+1)}</span><small style="color:var(--mut);font-weight:500">${nf(d.h,1)} h</small></h3>
+  ${m2?`<p style="margin-top:6px;font-weight:600;color:var(--accd)">Objectif du jour : ${nf(m2)} m² déposés et refermés</p>`:''}
+  <ul>${d.items.map(x=>`<li>${x.n}${x.part?` <small style="color:var(--mut)">(${nf(x.h,1)} h)</small>`:''}</li>`).join('')}</ul>
+  ${log.length?`<ul style="color:var(--pet2);font-size:14px">${log.map(l=>`<li>${l}</li>`).join('')}</ul>`:''}
+  <p class="note" style="margin-top:6px">Valeur produite : ${chf(share*k.ht)} · cumul ${chf(cumul)} (${nf(cumul/k.ht*100)} %)</p></div>`;}).join('')}`;}
+const CHECK={"Avant":["Photos de l'existant prises","Pente contrôlée (minimum 1,5 %) et points bas repérés","Protection anti-chute en place (garde-corps, filets ou harnais)","Météo vérifiée pour toute la durée","Levage, accès et zone de stockage définis","Charge admissible de la dalle vérifiée pour les palettes","Matériel livré et contrôlé contre la commande"],
+"Pendant":["Support propre, sec, primaire sec","Pare-vapeur continu et remonté en périphérie","Isolation sans lacune, joints décalés","Évacuations posées avant les lés","Recouvrements dans le sens de l'écoulement","Relevés au développé prévu, angles renforcés","Trop-plein de sécurité en place","Chantier fermé et lesté chaque soir"],
+"Fin":["Soudures contrôlées sur toute la longueur","Essai d'eau ou contrôle visuel des évacuations","Photos après travaux","Déchets évacués, évacuations nettoyées","Procès-verbal de réception signé"]};
+function vCtrl(c){let n=0,done=0;const h=Object.entries(CHECK).map(([k,a])=>`<div class="card sec"><h3>${k}</h3>${a.map(t=>{n++;const id='k'+n;if(c.check[id])done++;return `<label class="chk"><input type="checkbox" data-ck="${id}" ${c.check[id]?'checked':''}><span>${t}</span></label>`;}).join('')}</div>`).join('');
+ return `<div class="card"><h2>Contrôles</h2><p style="margin-top:6px">${done} sur ${n} points validés</p><div style="height:8px;background:var(--con);border-radius:4px;margin-top:8px"><div style="height:8px;width:${done/n*100}%;background:var(--ok);border-radius:4px"></div></div></div>${h}`;}
+
+function copyOrder(){const c=cur,M=materials(c),g=geo(c);
+ const t=`COMMANDE – ${c.nom||'Chantier'}${c.adresse?' – '+c.adresse:''}\n${TYPES[c.type]} · ${nf(g.A)} m² · ${SYS[c.sys]}${+c.iso&&c.type!=='mur'?' · PIR '+c.iso+' mm':''}\n\n`+M.map(m=>`- ${m.name} : ${nf(m.packN)} ${plu(m.pack,m.packN)}`).join('\n')+`\n\nPoids total : ${nf(M.reduce((s,m)=>s+m.kg,0)/1000,1)} t\nLivraison : camion-grue`;
+ const b=$('#copy');if(window.Android&&window.Android.share){window.Android.share(t);return;}navigator.clipboard.writeText(t).then(()=>{b.textContent='Copié ✓';setTimeout(()=>b.textContent='Copier la commande',1500);},()=>{b.textContent='Copie impossible';});}
+
+function openParams(){const d=$('#dlg');
+ const num=(k,l,v)=>`<label class="f">${l}<input class="t n" type="number" step="any" min="0" data-p="${k}" value="${v}"></label>`;
+ d.innerHTML=`<h2>Paramètres</h2><p class="note">Vos rendements et conditionnements. Ils s'appliquent à tous les chantiers.</p>
+ <h3 style="margin-top:16px">Analyse photo (IA)</h3><div class="g2" style="margin-top:8px"><label class="f">Clé API Anthropic <small>console.anthropic.com</small><input class="t" type="password" data-ls="havret-key" autocomplete="off" value="${esc((()=>{try{return localStorage.getItem('havret-key')||''}catch(_){return ''}})())}"></label><label class="f">Modèle<input class="t" data-ls="havret-model" value="${esc((()=>{try{return localStorage.getItem('havret-model')||'claude-sonnet-5-5'}catch(_){return 'claude-sonnet-5-5'}})())}"></label></div><p class="note">La clé reste sur ce téléphone. Chaque analyse coûte quelques centimes.</p>
+ <h3 style="margin-top:16px">Coûts et marge</h3><div class="g2" style="margin-top:8px">${num('tauxH','Coût horaire main-d\'œuvre (CHF/h)',P.tauxH)}${num('fg','Frais généraux (%)',P.fg)}${num('marge','Marge (%)',P.marge)}${num('objJour','Objectif de marge par jour (CHF)',P.objJour)}${num('grue','Camion-grue (CHF/livraison)',P.grue)}${num('depl','Déplacement (CHF/jour/2 pers.)',P.depl)}${num('gcMl','Garde-corps location (CHF/ml)',P.gcMl)}${num('tva','TVA (%)',P.tva)}</div>
+ <h3 style="margin-top:16px">Prix d'achat HT (CHF)</h3><div class="g2" style="margin-top:8px">${Object.entries(PRIXN).map(([k,l])=>num('prix.'+k,l,P.prix[k])).join('')}</div>
+ <h3 style="margin-top:16px">Rendements (par personne)</h3><div class="g2" style="margin-top:8px">${Object.entries(PRODN).map(([k,l])=>num('prod.'+k,l,P.prod[k])).join('')}</div>
+ <h3 style="margin-top:16px">Matériaux</h3><div class="g2" style="margin-top:8px">${num('recouv','Recouvrement des lés (%)',P.recouv)}${num('chute','Chute (%)',P.chute)}${num('primaire','Primaire (l/m²)',P.primaire)}${num('pvRoul','Pare-vapeur m²/rouleau',P.pvRoul)}${num('b1Roul','Bitume 1re couche m²/rouleau',P.b1Roul)}${num('b2Roul','Bitume ardoisé m²/rouleau',P.b2Roul)}${num('b1Pal','Rouleaux bitume / palette',P.b1Pal)}${num('fpoRoul','FPO m²/rouleau',P.fpoRoul)}${num('gazM2','m² soudés par bouteille 33 kg',P.gazM2)}${num('resKg','Résine kg/m²',P.resKg)}${num('gravEp','Gravier épaisseur (cm)',P.gravEp)}${num('isoPalH','Hauteur palette isolation (m)',P.isoPalH)}${num('isoLay','Panneaux isolation par rang',P.isoLay)}${num('pvPal','Rouleaux pare-vapeur / palette',P.pvPal)}${num('b2Pal','Rouleaux ardoisés / palette',P.b2Pal)}</div>
+ <div style="display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="preset">Valeurs par défaut</button><button class="btn" type="button" id="pclose">Fermer</button></div>`;
+ d.showModal();
+ d.oninput=e=>{if(e.target.dataset.ls){try{localStorage.setItem(e.target.dataset.ls,e.target.value.trim());}catch(_){}return;}const k=e.target.dataset.p;if(!k)return;const v=+e.target.value;if(!(v>0))return;if(k.startsWith('prod.'))P.prod[k.slice(5)]=v;else if(k.startsWith('prix.'))P.prix[k.slice(5)]=v;else P[k]=v;};
+ $('#pclose').onclick=()=>{d.close();saveParams();render();};
+ $('#preset').onclick=()=>{P=JSON.parse(JSON.stringify(DEF));d.close();saveParams();render();};
+}
+
+/* ===================== ANALYSE PHOTO ===================== */
+const shrink=file=>new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const m=1280,k=Math.min(1,m/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);cv.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej();},'image/jpeg',.85);};img.onerror=()=>{URL.revokeObjectURL(u);rej();};img.src=u;});
+async function addPhotos(files){let bad=0;for(const f of [...files].slice(0,4-photos.length)){let b=null;try{b=await shrink(f);}catch(_){if(/^image\/(jpeg|png|webp)$/.test(f.type)&&f.size<5e6)b=f;}if(!b){bad++;continue;}photos.push({b,url:URL.createObjectURL(b)});}
+ pstat=bad?`${bad} photo(s) illisible(s) (format HEIC ?) : faites une capture d'écran de la photo.`:'';render();}
+const androidSample=()=>{const f=async(p,o)=>({text:''});f.json=async(prompt,o)=>{const key=(()=>{try{return localStorage.getItem('havret-key')||'';}catch(_){return '';}})();if(!key)throw{code:'nokey'};
+ const b64=await Promise.all((o.images||[]).map(b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(String(fr.result).split(',')[1]);fr.readAsDataURL(b);})));
+ const id='a'+Date.now();let model='claude-sonnet-5-5';try{model=localStorage.getItem('havret-model')||model;}catch(_){}
+ return new Promise((res,rej)=>{window.__aiCb=window.__aiCb||{};window.__aiCb[id]={res,rej};window.Android.analyse(id,key,model,prompt,JSON.stringify(b64));});};return f;};
+window.__aiDone=(id,text,err)=>{const cb=(window.__aiCb||{})[id];if(!cb)return;delete window.__aiCb[id];if(err)return cb.rej({code:'api',message:err});try{cb.res(JSON.parse(text.slice(text.indexOf('{'),text.lastIndexOf('}')+1)));}catch(e){cb.rej({code:'parse'});}};
+const getSample=async()=>{if(sample)return sample;if(window.Android&&window.Android.analyse){sample=androidSample();return sample;}try{const x=window.claude&&window.claude.use?await window.claude.use('sample'):null;if(x&&x.limits){const l=await x.limits();if(l&&l.images)sample=x;}}catch(_){}return sample;};
+const pick=(v,ok,d)=>ok.includes(String(v))?String(v):d;
+async function analyse(){
+ const c=cur,el=()=>document.getElementById('pstat');pstat='<span class="spin"></span>Analyse en cours, environ 20 secondes…';el().innerHTML=pstat;
+ if(!await getSample()){pstat="L'analyse photo n'est pas disponible dans cette fenêtre (ouvrez l'application sur claude.ai dans un navigateur). Remplissez la composition à la main.";render();return;}
+ const g=geo(c);
+ const prompt=`Tu es chef de chantier expert en étanchéité de toitures plates en Suisse romande (entreprise Havret Étanchéité). Analyse ${photos.length} photo(s) d'un chantier${g.A?` dont les dimensions saisies sont ${nf(g.L,1)} m × ${nf(g.W,1)} m`:''}.
+Détermine la composition à réaliser selon les règles de l'art et la norme SIA 271:2021 (pente minimale 1,5 %, pare-vapeur sous isolation, relevés au-dessus de la couche de protection, évacuations avec trop-plein de sécurité, protection anti-chute). Ne cite aucun chiffre de norme dont tu n'es pas sûr. Une photo ne montre pas les couches cachées : reste prudent et dis ce qu'il faut vérifier.
+Réponds UNIQUEMENT avec un objet JSON valide :
+{"type":"plat|terrasse|vert|mur","etat":"neuf|reno","systeme":"bitume|fpo|epdm|resine","isolation_mm":0|100|120|140|160|180|200|240,"protection":"aucune|gravier|dalles|vege","evacuations":nombre,"garde_corps":true|false,"developpe_cm":nombre ou null,
+"resume":"2 phrases pour le chef d'équipe",
+"observations":["ce que tu vois : support, couches existantes, acrotères, évacuations, équipements, 2 à 5 éléments"],
+"risques":["défauts visibles et risques : cloques, flaches, fissures de relevés, végétation, accès, sécurité ; 1 à 5 éléments"],
+"conformite":["ce qu'il faut faire pour être conforme SIA 271 sur ce toit, 2 à 5 éléments"],
+"conseils":["conseils d'exécution concrets : par où commencer, détails délicats, organisation, 2 à 5 éléments"]}
+Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. "evacuations" = nombre visible, au moins 1 pour un toit. "developpe_cm" = hauteur estimée des relevés + retour si une échelle est visible, sinon null. "garde_corps" = vrai seulement si une protection collective existe sur tout le périmètre. Écris en français.`;
+ try{
+  const r=await sample.json(prompt,{images:photos.map(p=>p.b),modelTier:'complex'});
+  c.type=pick(r.type,Object.keys(TYPES),c.type);c.etat=pick(r.etat,['neuf','reno'],c.etat);
+  c.sys=pick(r.systeme,c.type==='mur'?['bitume','resine']:Object.keys(SYS),c.sys);
+  c.iso=c.type==='mur'?0:+pick(r.isolation_mm,['0','100','120','140','160','180','200','240'],String(c.iso));
+  c.prot=c.type==='mur'?'aucune':pick(r.protection,Object.keys(PROT),c.prot);
+  if(+r.evacuations>=0&&r.evacuations!=null)c.evac=Math.min(20,Math.round(+r.evacuations));
+  c.garde=!!r.garde_corps;if(+r.developpe_cm>0&&+r.developpe_cm<200)c.dev=Math.round(+r.developpe_cm);
+  const A=a=>Array.isArray(a)?a.slice(0,5).map(x=>String(x).slice(0,240)):[];
+  c.ai={resume:String(r.resume||'').slice(0,400),obs:A(r.observations),risques:A(r.risques),conf:A(r.conformite),conseils:A(r.conseils)};
+  pstat='';persist();render();
+ }catch(e){pstat=e&&e.code==='nokey'?"Ajoutez votre clé API Anthropic dans ⚙ (section Analyse photo).":e&&e.code==='api'?"Erreur de l'analyse : "+esc(e.message||''):e&&e.code==='rate_limited'?"Trop de demandes : réessayez dans une minute.":e&&e.code==='not_granted'?"Analyse non autorisée.":"L'analyse n'a pas abouti. Réessayez avec une photo plus nette ou plus large.";render();}
+}
+
+/* ===================== ÉVÉNEMENTS ===================== */
+app.addEventListener('input',e=>{if(!cur)return;const el=e.target,id=el.id;
+ if(el.dataset.ck){cur.check[el.dataset.ck]=el.checked;queue();render();return;}
+ if(!id||!(id in cur))return;
+ const nums=['L','W','dev','team','hday','evac','iso'];
+ cur[id]=el.type==='checkbox'?el.checked:id==='relMl'?(el.value===''?'':Math.max(0,+el.value)):nums.includes(id)?Math.max(0,+el.value||0):el.value;
+ if(id==='type'&&cur.type==='mur'&&!['bitume','resine'].includes(cur.sys))cur.sys='bitume';
+ queue();
+ if(el.tagName==='SELECT'||el.type==='checkbox'){render();}else{const k=document.querySelector('.kpi');if(k){const g=geo(cur),pl=plan(cur);k.innerHTML=`<div><span>Surface</span><b>${nf(g.A)} m²</b></div><div><span>Relevés</span><b>${nf(g.rel,1)} ml</b></div><div><span>Durée (${pl.team} pers.)</span><b>${nf(pl.days.length)} j</b></div><div><span>Prix de vente HT</span><b>${chf(cost(cur).ht)}</b></div>`;}if(id==='nom')$('#ttl').textContent=cur.nom||'Nouveau chantier';}
+});
+app.addEventListener('click',e=>{
+ const o=e.target.closest('[data-open]');if(o){const c=list.find(x=>x.id===o.dataset.open);if(c){cur=JSON.parse(JSON.stringify(c));if(!cur.check)cur.check={};tab="metres";render();window.scrollTo(0,0);}return;}
+ const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;render();return;}
+ if(e.target.id==='analyse'){analyse();return;}
+ if(e.target.id==='clearph'){photos=[];pstat='';render();return;}
+ if(e.target.id==='dup'){const n={...JSON.parse(JSON.stringify(cur)),id:NEW().id,nom:(cur.nom||'Chantier')+' (copie)',check:{},statut:'prevu'};cur=n;persist();render();return;}
+ if(e.target.id==='del'){const d=$('#dlg');d.innerHTML=`<h2>Supprimer ce chantier ?</h2><p style="margin-top:8px">« ${esc(cur.nom||'Sans nom')} » sera effacé définitivement.</p><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="btn gh sm" type="button" id="dno">Annuler</button><button class="btn sm" type="button" id="dyes">Supprimer</button></div>`;d.showModal();$('#dno').onclick=()=>d.close();$('#dyes').onclick=()=>{d.close();delChantier(cur.id);};}
+});
+app.addEventListener('change',e=>{if(e.target.dataset.photo&&e.target.files.length)addPhotos(e.target.files);});
+$('#back').onclick=()=>{if(dirty){clearTimeout(tmr);persist();}cur=null;photos=[];pstat='';render();window.scrollTo(0,0);};
+$('#gear').onclick=openParams;
+window.__back=()=>{const d=$('#dlg');if(d.open){d.close();return true;}if(cur){$('#back').click();return true;}return false;};
+render();initDb();
+}
+</script>
+</body>
+</html>
