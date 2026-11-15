@@ -7,6 +7,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -152,6 +155,19 @@ public class MainActivity extends Activity {
             i.setType("text/plain");
             i.putExtra(Intent.EXTRA_TEXT, text);
             runOnUiThread(() -> startActivity(Intent.createChooser(i, "Envoyer")));
+        }
+
+        /** Ouvre l'impression Android : choisir « Enregistrer au format PDF » pour obtenir le devis ou la facture en PDF. */
+        @JavascriptInterface
+        public void print(final String title) {
+            runOnUiThread(() -> {
+                PrintManager pm = (PrintManager) getSystemService(PRINT_SERVICE);
+                if (pm == null) return;
+                PrintDocumentAdapter adapter = web.createPrintDocumentAdapter(title);
+                pm.print(title, adapter, new PrintAttributes.Builder()
+                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                        .build());
+            });
         }
 
         @JavascriptInterface
