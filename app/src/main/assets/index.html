@@ -79,6 +79,17 @@ tr.cat td{background:var(--con);font-weight:700;font-size:13px;padding:6px 8px}
 .filebtn{position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
 .spin{display:inline-block;width:16px;height:16px;border:2.5px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px;margin-right:6px}@keyframes sp{to{transform:rotate(360deg)}}
 .ai ul{margin:6px 0 0;padding-left:18px;font-size:15px}.ai li{margin:3px 0}.ai h3{margin-top:14px}
+.doc{background:#fff;color:#111;border:1px solid var(--line);border-radius:6px;padding:28px 26px;margin-top:16px;font:14px/1.45 Inter,system-ui,sans-serif;max-width:820px}
+.doc .dh{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.doc .dn{font:800 20px Archivo,sans-serif;color:#0f3b4c;margin-bottom:4px}
+.doc .dc{min-width:200px;padding:10px 14px;border:1px solid #d4dde0;border-radius:6px}.doc .dl{font-size:11px;color:#667;text-transform:uppercase;letter-spacing:.04em}
+.doc .dt{font:800 24px Archivo,sans-serif;margin:24px 0 6px;color:#0f3b4c}.doc .dm{display:flex;gap:24px;flex-wrap:wrap;font-size:13px}.doc .dm span{display:block;font-size:11px;color:#667}
+.doc .do{margin:16px 0 8px}.doc p{margin:8px 0}
+.doc .dtab{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}.doc .dtab th{border-bottom:2px solid #0f3b4c;color:#0f3b4c;font-size:11px;text-transform:uppercase;padding:6px 6px 6px 0}.doc .dtab td{border-bottom:1px solid #dde3e5;padding:8px 6px 8px 0;vertical-align:top}.doc .dtab small{color:#555}
+.doc .dsum{margin:12px 0 0 auto;min-width:260px;border-collapse:collapse}.doc .dsum td{padding:5px 0 5px 20px;border:0}.doc .dsum .tt td{font-weight:800;font-size:16px;border-top:2px solid #0f3b4c;color:#0f3b4c}
+.doc .dcond{margin-top:18px;font-size:12.5px}.doc .dcond h3{font-size:14px;color:#0f3b4c}.doc .dcond ul{padding-left:18px;margin:6px 0}
+.doc .dsig{display:flex;gap:30px;justify-content:space-between;margin-top:26px;font-size:12.5px;flex-wrap:wrap}.doc .dfoot{margin-top:22px}
+@media(max-width:600px){.doc{padding:18px 14px}.doc .dtab th:nth-child(4),.doc .dtab td:nth-child(4){display:none}}
+@media print{body{background:#fff}header,.tabs,.kpi,.foot,.noprint,#app>.kpi{display:none!important}.wrap{padding:0}.doc{border:0;padding:0;max-width:none;margin:0}@page{size:A4;margin:16mm}}
 dialog{border:0;border-radius:16px;padding:20px;max-width:440px;width:calc(100% - 32px);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:#0008}
 @media(max-width:600px){.hide-s{display:none}.tabs button{padding:12px 9px;font-size:14px}}
@@ -101,30 +112,33 @@ dialog::backdrop{background:#0008}
 const DEF={
  recouv:10,            /* % de recouvrement des lés */
  chute:5,              /* % de chute isolation et divers */
- primaire:0.25,        /* l/m² enduit d'accrochage */
- bidonPrim:25,         /* l par bidon */
+ prixVer:'swisspor-2026b', /* version des prix par défaut */
+ primaire:0.2,         /* l/m² enduit d'apprêt VS (swisspor) */
+ bidonPrim:10,         /* l par bidon */
  pvRoul:10, pvKg:38, pvPal:30,             /* pare-vapeur bitumineux : m²/rouleau, kg, rouleaux/palette */
- b1Roul:7.5, b1Kg:36, b1Pal:30,            /* bitume 1re couche (EP4) */
- b2Roul:5, b2Kg:30, b2Pal:30,              /* bitume couche de surface ardoisée (EP5) */
+ b1Roul:8, b1Kg:38, b1Pal:20,            /* bitume 1re couche (EP4) */
+ b2Roul:8, b2Kg:46, b2Pal:15,              /* bitume couche de surface ardoisée (EP5) */
  gazM2:130,            /* m² de lés soudés par bouteille de propane 33 kg */
  fpoRoul:40, fpoKg:58, fpoPal:20,          /* FPO/PVC rouleau 2 × 20 m */
  fixM2:4.5,            /* fixations mécaniques par m² (membrane non lestée) */
  epdmKgM2:1.4,         /* EPDM kg/m² */
  colleM2:0.3,          /* l/m² colle de contact (relevés EPDM/FPO) */
- resPrim:0.3, resKg:2.8, resSeau:15, voileRoul:50,  /* résine : primaire kg/m², résine kg/m², seau kg, voile m²/rouleau */
+ resPrim:0.3, resKg:2.8, resSeau:10, voileRoul:52.5,  /* résine : primaire kg/m², résine kg/m², seau kg, voile m²/rouleau */
  isoPan:0.72, isoDens:32, isoPalH:2.4, isoLay:4, /* panneaux par rang sur la palette */     /* PIR : m²/panneau (1200×600), kg/m³, hauteur palette m */
  geoRoul:100,          /* géotextile m²/rouleau */
  gravEp:5, gravDens:1.6,                    /* gravier : cm, t/m³ */
  dalM2:4.2, dalKg:22, dalPal:60, plotsM2:4.4, /* dalles 50×50 : pièces/m², kg, pièces/palette, plots/m² */
  subEp:8,              /* substrat végétalisation cm */
  /* PRIX D'ACHAT HT (CHF) par conditionnement — indicatifs, à remplacer par vos prix fournisseur */
- prix:{benne:650,prim:95,pv:75,isoMm:0.28,b1:95,b2:85,gaz:95,fpo:520,fix:180,colle:70,tole:38,epdm:18,jonc:90,rprim:180,res:260,voile:120,naiss:120,tp:160,geo:140,grav:95,dal:8,plots:160,natte:230,sub:180,sedum:28,nmur:110},
+ /* swisspor liste de prix 2026 (prix bruts HT) + supplément bitume 15 % dès le 20.04.2026 ; autres = estimations */
+ prix:{benne:650,prim:35,pv:107,isoMm:0.305,b1:111.3,b2:128.8,gaz:95,fpo:520,fix:180,colle:70,tole:38,epdm:18,jonc:90,rprim:310,res:250,voile:302.4,naiss:120,tp:160,geo:230,grav:95,dal:8,plots:160,natte:230,sub:180,sedum:28,nmur:110},
  /* COÛTS */
- tauxH:62, grue:480, depl:60, gcMl:12, fg:12, marge:15, tva:8.1, objJour:900,
- prod:{depose:3,prim:25,pv:12,iso:10,b1:7,b2:6,fpo:9,epdm:10,res:3,rel:1.5,evac:2,geo:30,grav:6,dal:2.5,veg:4,instal:6,repli:4,controle:3}
+ tauxH:85, regie:95, /* coût horaire complet : salaire + charges + frais fixes */
+ ent:{nom:'Havret Étanchéité',adr:'',npa:'',tel:'',mail:'',tva:'',iban:'',acompte:30,jours:30,valid:30,nD:0,nF:0}, grue:480, depl:60, gcMl:12, fg:5, marge:10, tva:8.1, objJour:900,
+ prod:{seuil:1.5,trav:0.75,angle:0.3,depose:3,prim:25,pv:12,iso:10,b1:15,b2:13,fpo:9,epdm:10,res:3,rel:1.5,evac:2,geo:30,grav:6,dal:2.5,veg:4,instal:6,repli:4,controle:3}
 };
-const PRIXN={benne:"Benne 7 m³ (pièce)",prim:"Primaire bitumineux (bidon 25 l)",pv:"Pare-vapeur (rouleau)",isoMm:"Isolation PIR (CHF par m² et par mm)",b1:"Bitume EP4 (rouleau)",b2:"Bitume ardoisé EP5 (rouleau)",gaz:"Propane 33 kg (bouteille)",fpo:"FPO/PVC (rouleau)",fix:"Fixations (boîte 250)",colle:"Colle (bidon 5 l)",tole:"Tôle colaminée (barre 2 m)",epdm:"EPDM (m²)",jonc:"Bande de jonction EPDM (rouleau)",rprim:"Primaire résine (bidon 10 kg)",res:"Résine (seau)",voile:"Voile de renfort (rouleau)",naiss:"Naissance EP + crapaudine",tp:"Trop-plein de sécurité",geo:"Géotextile (rouleau)",grav:"Gravier (big bag 1 t)",dal:"Dalle 50 × 50 (pièce)",plots:"Plots (carton 50)",natte:"Natte drainante (rouleau)",sub:"Substrat (big bag 1 m³)",sedum:"Sedum (m²)",nmur:"Natte à excroissances (rouleau)"};
-const PRODN={depose:"Dépose ancienne étanchéité (m²/h)",prim:"Primaire (m²/h)",pv:"Pare-vapeur (m²/h)",iso:"Isolation (m²/h)",b1:"Bitume 1re couche (m²/h)",b2:"Bitume 2e couche (m²/h)",fpo:"Membrane FPO (m²/h)",epdm:"Membrane EPDM (m²/h)",res:"Résine (m²/h)",rel:"Relevés (ml/h, toutes couches)",evac:"Évacuation (h/pièce)",geo:"Géotextile (m²/h)",grav:"Gravier (m²/h)",dal:"Dalles sur plots (m²/h)",veg:"Végétalisation (m²/h)",instal:"Installation chantier (h)",repli:"Repli et nettoyage (h)",controle:"Contrôle final (h)"};
+const PRIXN={benne:"Benne 7 m³ (pièce)",prim:"Enduit d'apprêt VS (bidon 10 l)",pv:"Pare-vapeur (rouleau)",isoMm:"Isolation PIR (CHF par m² et par mm)",b1:"Bitume EP4 (rouleau)",b2:"Bitume ardoisé EP5 (rouleau)",gaz:"Propane 33 kg (bouteille)",fpo:"FPO/PVC (rouleau)",fix:"Fixations (boîte 250)",colle:"Colle (bidon 5 l)",tole:"Tôle colaminée (barre 2 m)",epdm:"EPDM (m²)",jonc:"Bande de jonction EPDM (rouleau)",rprim:"Primaire résine (seau 10 kg)",res:"Résine (seau)",voile:"Voile FLK (rouleau 1,05 × 50 m)",naiss:"Naissance EP + crapaudine",tp:"Trop-plein de sécurité",geo:"Géotextile (rouleau)",grav:"Gravier (big bag 1 t)",dal:"Dalle 50 × 50 (pièce)",plots:"Plots (carton 50)",natte:"Natte drainante (rouleau)",sub:"Substrat (big bag 1 m³)",sedum:"Sedum (m²)",nmur:"Natte à excroissances (rouleau)"};
+const PRODN={seuil:"Raccord de seuil (h/ml)",trav:"Traversée (h/pièce)",angle:"Angle rentrant/sortant (h/pièce)",depose:"Dépose ancienne étanchéité (m²/h)",prim:"Primaire (m²/h)",pv:"Pare-vapeur (m²/h)",iso:"Isolation (m²/h)",b1:"Bitume 1re couche (m²/h)",b2:"Bitume 2e couche (m²/h)",fpo:"Membrane FPO (m²/h)",epdm:"Membrane EPDM (m²/h)",res:"Résine (m²/h)",rel:"Relevés (ml/h, toutes couches)",evac:"Évacuation (h/pièce)",geo:"Géotextile (m²/h)",grav:"Gravier (m²/h)",dal:"Dalles sur plots (m²/h)",veg:"Végétalisation (m²/h)",instal:"Installation chantier (h)",repli:"Repli et nettoyage (h)",controle:"Contrôle final (h)"};
 const SYS={bitume:"Bitume bicouche",fpo:"Membrane FPO / PVC",epdm:"Membrane EPDM",resine:"Résine liquide"};
 const PROT={aucune:"Aucune (apparente)",gravier:"Gravier 16/32",dalles:"Dalles sur plots",vege:"Végétalisation extensive"};
 const TYPES={plat:"Toit plat",terrasse:"Terrasse / balcon",vert:"Toiture végétalisée",mur:"Murs enterrés"};
@@ -138,7 +152,7 @@ const $=s=>document.querySelector(s),app=$('#app');
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nf=(n,d=0)=>Number(n).toLocaleString('fr-CH',{maximumFractionDigits:d,minimumFractionDigits:d}).replace(/[  ’]/g,"'");
 const ceil=Math.ceil;
-const plu=(pack,n)=>{if(n<2||/^(nappe)$/.test(pack))return pack;const w=pack.split(' ');w[0]=w[0].replace(/^(.*?)(eau|s)?$/,(m,a,b)=>b==='eau'?a+'eaux':b==='s'?m:a+'s');return w.join(' ');};
+const plu=(pack,n)=>{if(n<2||/^(nappe)$/.test(pack))return pack;if(/^big bag/.test(pack))return pack.replace('big bag','big bags');const w=pack.split(' ');w[0]=w[0].replace(/^(.*?)(eau|s)?$/,(m,a,b)=>b==='eau'?a+'eaux':b==='s'?m:a+'s');return w.join(' ');};
 
 /* ===================== CALCULS ===================== */
 function geo(c){const L=+c.L||0,W=+c.W||0,A=c.type==="mur"?L*W:L*W;const per=c.relMl===''||c.relMl==null?2*(L+W):+c.relMl;return{L,W,A,rel:c.type==="mur"?0:per,dev:(+c.dev||0)/100};}
@@ -147,13 +161,13 @@ function materials(c){
  const add=(cat,k,name,qty,unit,pack,packN,kg,perPal,use,pid,pu)=>out.push({cat,k,name,qty,unit,pack,packN,kg,perPal,use,pid,pu:pu!=null?pu:(P.prix[pid]||0),cost:packN*(pu!=null?pu:(P.prix[pid]||0))});
  const isRoof=c.type!=="mur",hasIso=isRoof&&+c.iso>0,bitumeVP=hasIso||c.sys==="bitume";
  if(c.etat==="reno")add("Préparation","dep","Benne / évacuation ancienne étanchéité",ceil(A*0.012),"m³","benne 7 m³",ceil(A*0.012/7),0,0,0,"benne");
- if(c.sys!=="resine"&&bitumeVP){const l=(A+relA)*P.primaire;add("Préparation","acc","Primaire bitumineux (enduit d'accrochage)",l,"l","bidon "+P.bidonPrim+" l",ceil(l/P.bidonPrim),ceil(l/P.bidonPrim)*P.bidonPrim,0,1,"prim");}
- if(hasIso){const m=(A+g.rel*0.15)*rec;add("Pare-vapeur","pv","Pare-vapeur bitumineux (EGV 3)",m,"m²","rouleau "+P.pvRoul+" m²",ceil(m/P.pvRoul),ceil(m/P.pvRoul)*P.pvKg,P.pvPal,2,"pv");
+ if(c.sys!=="resine"&&bitumeVP){const l=(A+relA)*P.primaire;add("Préparation","acc","Enduit d'apprêt bitumineux VS",l,"l","bidon "+P.bidonPrim+" l",ceil(l/P.bidonPrim),ceil(l/P.bidonPrim)*P.bidonPrim,0,1,"prim");}
+ if(hasIso){const m=(A+g.rel*0.15)*rec;add("Pare-vapeur","pv","Pare-vapeur BIKUPLAN EGV 3.5",m,"m²","rouleau "+P.pvRoul+" m²",ceil(m/P.pvRoul),ceil(m/P.pvRoul)*P.pvKg,P.pvPal,2,"pv");
   const m2=A*ch,np=ceil(m2/P.isoPan);const panPal=Math.max(1,P.isoLay*Math.floor(P.isoPalH/(c.iso/1000)));
   add("Isolation","iso",`Panneaux PIR ${c.iso} mm (1200 × 600)`,m2,"m²","panneau "+P.isoPan+" m²",np,m2*c.iso/1000*P.isoDens,panPal,3,"iso",P.prix.isoMm*P.isoPan*c.iso);}
  if(c.sys==="bitume"){const m1=(A+relA)*rec,m2=(A+relA)*rec;
-  add("Étanchéité","b1","Lé bitume SBS 1re couche (EP4)",m1,"m²","rouleau "+P.b1Roul+" m²",ceil(m1/P.b1Roul),ceil(m1/P.b1Roul)*P.b1Kg,P.b1Pal,4,"b1");
-  add("Étanchéité","b2","Lé bitume SBS ardoisé de surface (EP5)",m2,"m²","rouleau "+P.b2Roul+" m²",ceil(m2/P.b2Roul),ceil(m2/P.b2Roul)*P.b2Kg,P.b2Pal,5,"b2");}
+  add("Étanchéité","b1","BIKUTOP EP4 WF flam (1re couche)",m1,"m²","rouleau "+P.b1Roul+" m²",ceil(m1/P.b1Roul),ceil(m1/P.b1Roul)*P.b1Kg,P.b1Pal,4,"b1");
+  add("Étanchéité","b2","BIKUTOP EP5 WF S flam ardoisé (finition)",m2,"m²","rouleau "+P.b2Roul+" m²",ceil(m2/P.b2Roul),ceil(m2/P.b2Roul)*P.b2Kg,P.b2Pal,5,"b2");}
  if(c.sys==="fpo"){const m=(A+relA)*rec;add("Étanchéité","fpo","Membrane FPO/PVC 1,5 mm",m,"m²","rouleau "+P.fpoRoul+" m²",ceil(m/P.fpoRoul),ceil(m/P.fpoRoul)*P.fpoKg,P.fpoPal,4,"fpo");
   if(c.prot==="aucune"&&isRoof){const n=ceil(A*P.fixM2);add("Étanchéité","acc","Fixations mécaniques + plaquettes",n,"pce","boîte 250",ceil(n/250),ceil(n/250)*9,0,4,"fix");}
   add("Étanchéité","acc","Colle de contact relevés",Math.max(5,relA*P.colleM2*2),"l","bidon 5 l",ceil(Math.max(5,relA*P.colleM2*2)/5),ceil(Math.max(5,relA*P.colleM2*2)/5)*5,0,6,"colle");
@@ -171,6 +185,11 @@ function materials(c){
  if(isRoof&&c.prot==="gravier"){const t=A*P.gravEp/100*P.gravDens;add("Protection","prot","Gravier roulé 16/32",t,"t","big bag 1 t",ceil(t),ceil(t)*1000,1,8,"grav");}
  if(isRoof&&c.prot==="dalles"){const n=ceil(A*P.dalM2*1.03),p=ceil(A*P.plotsM2);add("Protection","prot","Dalles béton 50 × 50",n,"pce","dalle",n,n*P.dalKg,P.dalPal,8,"dal");add("Protection","acc","Plots réglables",p,"pce","carton 50",ceil(p/50),ceil(p/50)*12,0,8,"plots");}
  if(isRoof&&c.prot==="vege"){const s=A*P.subEp/100;add("Protection","prot","Natte drainante / rétention",A*rec,"m²","rouleau 25 m²",ceil(A*rec/25),ceil(A*rec/25)*20,0,8,"natte");add("Protection","prot","Substrat extensif",s,"m³","big bag 1 m³",ceil(s),ceil(s)*1100,1,8,"sub");add("Protection","prot","Plants / sedum",A,"m²","plaque",ceil(A),ceil(A)*3,0,8,"sedum");}
+ const rA=(+c.seuilMl||0)*0.5+(+c.trav||0)*0.25+(+c.angles||0)*0.15;
+ if(rA>0){const kp=Math.max(1,rA*P.resPrim),kr=rA*3,v=rA*1.2;
+  add("Raccords et détails","res","Primaire résine (raccords)",kp,"kg","bidon 10 kg",ceil(kp/10),ceil(kp/10)*10,0,6,"rprim");
+  add("Raccords et détails","res","Résine de raccord (seuils, traversées, angles)",kr,"kg","seau "+P.resSeau+" kg",ceil(kr/P.resSeau),ceil(kr/P.resSeau)*P.resSeau,0,6,"res");
+  add("Raccords et détails","res","Voile de renfort (raccords)",v,"m²","rouleau "+P.voileRoul+" m²",ceil(v/P.voileRoul),ceil(v/P.voileRoul)*8,0,6,"voile");}
  if(c.type==="mur"){const m=A*1.05;add("Protection","geo","Natte à excroissances (protection mur)",m,"m²","rouleau 20 m²",ceil(m/20),ceil(m/20)*14,0,7,"nmur");}
  return out;
 }
@@ -189,6 +208,7 @@ function tasks(c){
  if(c.sys==="fpo")t("fpo","Membrane FPO",A/pr.fpo,"Souder à l'air chaud, contrôler chaque soudure à la pointe.");
  if(c.sys==="epdm")t("epdm","Membrane EPDM",A/pr.epdm,"Dérouler, laisser détendre 30 min, ajuster puis coller ou lester.");
  if(c.sys==="resine")t("res","Résine armée (2 passes)",A/pr.res,"Pose frais sur frais avec le voile, détails et relevés en premier.");
+ {const h=(+c.seuilMl||0)*pr.seuil+(+c.trav||0)*pr.trav+(+c.angles||0)*pr.angle;t("racc","Raccords seuils, traversées et angles",h,"Résine armée sur primaire, remontée sous les seuils et autour des traversées, en continuité avec l'étanchéité courante.");}
  if(g.rel>0)t("rel","Relevés et raccords",g.rel/pr.rel,"Relevés sur le développé prévu ("+nf(g.dev*100)+" cm), angles renforcés, fixation en tête.");
  if(isRoof&&c.prot!=="aucune")t("geo","Géotextile",A/pr.geo,"Recouvrements 20 cm minimum.");
  if(isRoof&&c.prot==="gravier")t("grav","Gravier",A/pr.grav,"Répartir les big bags, étaler en couche régulière.");
@@ -241,6 +261,32 @@ function cost(c){
  if(!c.garde&&c.type!=="mur")L.push(["Garde-corps de chantier (location)",Math.ceil(2*(g.L+g.W)),"ml",P.gcMl]);
  const log=L.reduce((s,x)=>s+x[1]*x[3],0),direct=mat+mo+log,fg=direct*P.fg/100,rev=direct+fg,marge=rev*P.marge/100,ht=rev+marge,tva=ht*P.tva/100;
  return{M,L,mat,mo,h,log,fg,rev,marge,ht,tva,ttc:ht+tva,jours,pl,m2:g.A?ht/g.A:0,parJour:jours?marge/jours:0,venteJour:jours?ht/jours:0};
+}
+const PMAP={benne:'depose',prim:'prep',pv:'prep',iso:'iso',b1:'etanch',b2:'etanch',gaz:'etanch',fpo:'etanch',fix:'etanch',colle:'etanch',tole:'rel',epdm:'etanch',jonc:'rel',naiss:'evac',tp:'evac',geo:'prot',grav:'prot',dal:'prot',plots:'prot',natte:'prot',sub:'prot',sedum:'prot',nmur:'prot',rprim:'etanch',res:'etanch',voile:'etanch'};
+const TMAP={instal:'instal',repli:'instal',controle:'instal',support:'instal',depose:'depose',prim:'prep',pv:'prep',iso:'iso',b1:'etanch',b2:'etanch',fpo:'etanch',epdm:'etanch',res:'etanch',rel:'rel',evac:'evac',racc:'racc',geo:'prot',grav:'prot',dal:'prot',veg:'prot'};
+function postes(c){
+ const k=cost(c),g=geo(c),A=g.A,relA=g.rel*g.dev,P0={};const add=(id,v)=>{P0[id]=(P0[id]||0)+v;};
+ for(const m of k.M){let id=/raccords/i.test(m.name)?'racc':(PMAP[m.pid]||'instal');
+  if(id==='etanch'&&relA>0&&c.type!=='mur'){const f=relA/(A+relA);add('rel',m.cost*f);add('etanch',m.cost*(1-f));}else add(id,m.cost);}
+ for(const t of k.pl.T)add(TMAP[t.k]||'instal',t.ph*P.tauxH);
+ add('instal',k.log);
+ const tot=Object.values(P0).reduce((a,b)=>a+b,0),f=tot?k.ht/tot:1;
+ const sysD={bitume:"Étanchéité bicouche en lés de bitume polymère SBS : première couche EP4 et couche de finition EP5 ardoisée, soudées à la flamme, recouvrements dans le sens de l'écoulement",
+  fpo:"Étanchéité synthétique en membrane FPO/PVC 1,5 mm, soudée à l'air chaud"+(c.prot==='aucune'?', fixée mécaniquement':', lestée'),
+  epdm:"Étanchéité en membrane EPDM 1,2 mm d'un seul tenant"+(c.prot==='aucune'?', collée en plein':', posée libre et lestée'),
+  resine:"Étanchéité liquide en résine armée d'un voile polyester, appliquée en deux passes sur primaire"};
+ const protD={gravier:"Couche de protection : géotextile 300 g/m² et gravier roulé 16/32, épaisseur 5 cm",dalles:"Revêtement praticable : géotextile de protection et dalles béton 50 × 50 posées sur plots réglables",vege:"Végétalisation extensive : natte drainante et de rétention, substrat épaisseur 8 cm, plantation de sedum"};
+ const L=[
+  ['instal',"Installation de chantier","Mise en place des protections collectives, levage et approvisionnement des matériaux, contrôle du support et des pentes, essai final, repli et nettoyage",1,'forfait'],
+  ['depose',"Dépose de l'étanchéité existante","Dépose soignée de l'ancienne étanchéité, tri et évacuation des déchets en décharge agréée",A,'m²'],
+  ['prep',(+c.iso&&c.type!=='mur')?"Préparation du support et pare-vapeur":"Préparation du support",(+c.iso&&c.type!=='mur'?"Nettoyage du support, enduit d'accrochage bitumineux et pare-vapeur EGV 3 soudé en plein, remonté en périphérie":"Nettoyage du support et application d'un primaire d'accrochage"),A,'m²'],
+  ['iso',"Isolation thermique",`Fourniture et pose de panneaux d'isolation PIR épaisseur ${c.iso} mm, joints décalés, sans lacune`,A,'m²'],
+  ['etanch',c.type==='mur'?"Étanchéité des murs enterrés":"Étanchéité en surface courante","Fourniture et pose. "+sysD[c.sys],A,'m²'],
+  ['rel',"Relevés et rives",`Relevés d'étanchéité sur acrotères et murs, développé ${nf(c.dev)} cm, angles renforcés, fixation et protection en tête`,g.rel,'ml'],
+  ['racc',"Raccords et points singuliers",`Raccords en résine armée sur primaire : ${[+c.seuils?`${c.seuils} seuil${c.seuils>1?'s':''} de porte-fenêtre (${nf(c.seuilMl,1)} ml)`:'',+c.trav?`${c.trav} traversée${c.trav>1?'s':''}`:'',+c.angles?`${c.angles} angle${c.angles>1?'s':''}`:''].filter(Boolean).join(', ')}, en continuité avec l'étanchéité courante`,1,'forfait'],
+  ['evac',"Évacuations des eaux pluviales",`Fourniture et pose de ${+c.evac} naissance${+c.evac>1?'s':''} avec crapaudine${+c.evac>1?'s':''} et de ${Math.max(1,ceil(c.evac/2))} trop-plein${ceil(c.evac/2)>1?'s':''} de sécurité, raccordés à l'étanchéité`,1,'forfait'],
+  ['prot',c.type==='mur'?"Protection de l'étanchéité":"Couche de protection",c.type==='mur'?"Natte à excroissances fixée en tête, avant remblayage":(protD[c.prot]||''),A,'m²']];
+ return L.filter(l=>(P0[l[0]]||0)>0.5).map((l,i)=>{const tot=Math.round(P0[l[0]]*f/5)*5;return{pos:(i+1)*10,id:l[0],t:l[1],d:l[2],q:l[3],u:l[4],tot,pu:l[3]?tot/l[3]:tot};});
 }
 const DJ=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"],MO=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 function workDates(start,n){const out=[];if(!start)return out;let d=new Date(start+"T08:00");if(isNaN(d))return out;while(out.length<n){if(d.getDay()!==0&&d.getDay()!==6)out.push(new Date(d));d.setDate(d.getDate()+1);}return out;}
@@ -299,7 +345,7 @@ async function initDb(){
  db.collection('chantiers').onSnapshot(s=>{clearTimeout(t);list=s.docs.map(d=>({...d.data(),id:d.id}));if(cur){const n=list.find(x=>x.id===cur.id);if(n&&!dirty)cur=JSON.parse(JSON.stringify(n));}if(!document.activeElement||!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))render();},e=>{clearTimeout(t);$('#save').textContent='Erreur de synchro';});
  db.doc('config/params').onSnapshot(s=>{if(s.exists){P=merge(s.data());if(cur)render();}},()=>{});
 }
-const merge=p=>({...JSON.parse(JSON.stringify(DEF)),...p,prod:{...DEF.prod,...(p.prod||{})},prix:{...DEF.prix,...(p.prix||{})}});
+const merge=p=>{const o={...JSON.parse(JSON.stringify(DEF)),...p,prod:{...DEF.prod,...(p.prod||{})},prix:{...DEF.prix,...(p.prix||{})},ent:{...DEF.ent,...(p.ent||{})}};if(p.prixVer!==DEF.prixVer){o.prix={...DEF.prix};for(const k of ['primaire','bidonPrim','b1Roul','b1Kg','b1Pal','b2Roul','b2Kg','b2Pal','resSeau','voileRoul'])o[k]=DEF[k];o.tauxH=DEF.tauxH;o.fg=DEF.fg;o.marge=DEF.marge;o.prod={...o.prod,b1:DEF.prod.b1,b2:DEF.prod.b2};o.prixVer=DEF.prixVer;}return o;};
 let saving=Promise.resolve();
 function persist(){
  if(!cur)return;cur.updated=Date.now();const c=JSON.parse(JSON.stringify(cur));
@@ -313,7 +359,7 @@ async function delChantier(id){list=list.filter(x=>x.id!==id);if(local){try{loca
 async function saveParams(){if(local){try{localStorage.setItem(LS+'-p',JSON.stringify(P));}catch(_){}return;}try{await db.doc('config/params').set(P);}catch(_){}}
 
 /* ===================== ÉCRANS ===================== */
-const NEW=()=>({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom:'',client:'',adresse:'',date:'',statut:'prevu',type:'plat',etat:'reno',L:12,W:8,dev:40,relMl:'',sys:'bitume',iso:160,evac:2,prot:'gravier',bas:'gauche',lift:'bas',garde:false,team:2,hday:8.5,start:'',check:{},notes:'',updated:Date.now()});
+const NEW=()=>({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom:'',client:'',adresse:'',date:'',statut:'prevu',type:'plat',etat:'reno',L:12,W:8,dev:40,relMl:'',sys:'bitume',iso:160,evac:2,prot:'gravier',bas:'gauche',lift:'bas',garde:false,team:2,hday:8.5,start:'',seuils:0,seuilMl:0,trav:0,angles:0,docType:'devis',devisNo:'',factNo:'',factDate:'',acompteRecu:0,check:{},notes:'',updated:Date.now()});
 const STAT={prevu:"Prévu",encours:"En cours",termine:"Terminé"};
 
 function render(){
@@ -336,7 +382,7 @@ const fld=(id,label,v,o={})=>`<label class="f">${label}${o.hint?` <small>${o.hin
 
 function renderChantier(){
  const c=cur,g=geo(c),pl=plan(c);
- const TABS={metres:"Métrés",chiffrage:"Chiffrage",materiel:"Matériel",planning:"Planning",palettes:"Palettes",methode:"Méthode",controles:"Contrôles"};
+ const TABS={metres:"Métrés",chiffrage:"Chiffrage",materiel:"Matériel",planning:"Planning",palettes:"Palettes",methode:"Méthode",controles:"Contrôles",doc:"Devis / Facture"};
  let h=`<div class="kpi"><div><span>Surface</span><b>${nf(g.A)} m²</b></div><div><span>Relevés</span><b>${nf(g.rel,1)} ml</b></div><div><span>Durée (${pl.team} pers.)</span><b>${nf(pl.days.length)} j</b></div><div><span>Prix de vente HT</span><b>${chf(cost(c).ht)}</b></div></div>
  <nav class="tabs" role="tablist">${Object.entries(TABS).map(([k,n])=>`<button type="button" role="tab" data-tab="${k}" class="${tab===k?'on':''}" aria-selected="${tab===k}">${n}</button>`).join('')}</nav><div class="sec">`;
  if(tab==="metres")h+=vMetres(c,g);
@@ -346,6 +392,7 @@ function renderChantier(){
  if(tab==="methode")h+=vMeth(c,pl);
  if(tab==="planning")h+=vPlan(c,pl);
  if(tab==="controles")h+=vCtrl(c);
+ if(tab==="doc")h+=vDoc(c);
  app.innerHTML=h+'</div>';
  const f=$('#foot');f.style.display='flex';f.innerHTML=`<div><small>${esc(TYPES[c.type])} · ${SYS[c.sys]}</small><b>${chf(cost(c).ht)} HT · ${pl.days.length} j</b></div><button class="btn sm" type="button" id="copy">${window.Android?'Envoyer la commande':'Copier la commande'}</button>`;
  $('#copy').onclick=copyOrder;
@@ -366,6 +413,8 @@ function vMetres(c,g){return vPhoto(c)+`<div class="card sec"><h2>Le chantier</h
  ${c.type==='mur'?'':fld('dev','Développé des relevés (cm)',c.dev,{num:1,hint:'remontée + retour sur l\'acrotère'})}
  ${c.type==='mur'?'':fld('relMl','Longueur des relevés (ml)',c.relMl,{num:1,ph:'Périmètre : '+nf(2*((+c.L||0)+(+c.W||0)),1),hint:'vide = tout le périmètre'})}
  </div></div>
+ <div class="card sec"><h2>Raccords et détails</h2><p class="note" style="margin-top:4px">Portes-fenêtres, traversées (pieds de garde-corps, tuyaux) et angles : traités en résine armée, quel que soit le système.</p><div class="g2" style="margin-top:12px">
+ ${fld('seuils','Portes-fenêtres (seuils)',c.seuils,{num:1})}${fld('seuilMl','Largeur totale des seuils (ml)',c.seuilMl,{num:1})}${fld('trav','Traversées (pièces)',c.trav,{num:1})}${fld('angles','Angles rentrants/sortants',c.angles,{num:1})}</div></div>
  <div class="card sec"><h2>Composition</h2><div class="g2" style="margin-top:12px">
  <label class="f">Type d'ouvrage${sel('type',TYPES,c.type)}</label>
  <label class="f">Support${sel('etat',{neuf:"Neuf",reno:"Rénovation (dépose)"},c.etat)}</label>
@@ -381,7 +430,7 @@ function vMetres(c,g){return vPhoto(c)+`<div class="card sec"><h2>Le chantier</h
  <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="dup">Dupliquer</button><button class="btn gh sm" type="button" id="del" style="color:var(--accd)">Supprimer</button></div>`;}
 function vMat(c){const M=materials(c);let cat='',rows='',kg=0;
  for(const m of M){if(m.cat!==cat){cat=m.cat;rows+=`<tr class="cat"><td colspan="3">${cat}</td></tr>`;}kg+=m.kg;
-  rows+=`<tr><td>${m.name}<br><small style="color:var(--mut)">${nf(m.qty,m.unit==='t'||m.unit==='m³'?1:0)} ${m.unit}</small></td><td class="r"><b>${nf(m.packN)}</b></td><td>${plu(m.pack,m.packN)}<br><small style="color:var(--mut)">${chf(m.cost)}</small></td></tr>`;}
+  rows+=`<tr><td>${m.name}<br><small style="color:var(--mut)">${nf(m.qty,m.unit==='t'||m.unit==='m³'?1:0)} ${/^[a-zé]{3,}$/i.test(m.unit)?plu(m.unit,Math.round(m.qty)):m.unit}</small></td><td class="r"><b>${nf(m.packN)}</b></td><td>${plu(m.pack,m.packN)}<br><small style="color:var(--mut)">${chf(m.cost)}</small></td></tr>`;}
  return `<div class="card"><h2>Liste de matériel</h2><p class="note" style="margin-top:4px">Quantités avec ${P.recouv} % de recouvrement et ${P.chute} % de chute, relevés compris (développé ${nf(c.dev)} cm). Conditionnements modifiables dans ⚙.</p>
  <table style="margin-top:10px"><thead><tr><th>Article</th><th class="r">Qté</th><th>Conditionnement</th></tr></thead><tbody>${rows}</tbody></table>
  <p style="margin-top:12px;font-weight:600">Poids total livré : ${nf(kg/1000,1)} t · Achat matériel : ${chf(M.reduce((s,m)=>s+m.cost,0))} HT</p></div>`;}
@@ -442,6 +491,43 @@ function vPlan(c,pl){
   <ul>${d.items.map(x=>`<li>${x.n}${x.part?` <small style="color:var(--mut)">(${nf(x.h,1)} h)</small>`:''}</li>`).join('')}</ul>
   ${log.length?`<ul style="color:var(--pet2);font-size:14px">${log.map(l=>`<li>${l}</li>`).join('')}</ul>`:''}
   <p class="note" style="margin-top:6px">Valeur produite : ${chf(share*k.ht)} · cumul ${chf(cumul)} (${nf(cumul/k.ht*100)} %)</p></div>`;}).join('')}`;}
+const today=()=>{const d=new Date();return d.toISOString().slice(0,10);};
+const fd=s=>{if(!s)return '';const d=new Date(s+'T12:00');return isNaN(d)?s:d.toLocaleDateString('fr-CH',{day:'2-digit',month:'long',year:'numeric'});};
+function vDoc(c){
+ const E=P.ent,k=cost(c),PO=postes(c),isF=c.docType==='facture',yr=new Date().getFullYear();
+ if(!c.devisNo){E.nD=(+E.nD||0)+1;c.devisNo=`D-${yr}-${String(E.nD).padStart(3,'0')}`;c.devisDate=today();saveParams();queue();}
+ if(isF&&!c.factNo){E.nF=(+E.nF||0)+1;c.factNo=`F-${yr}-${String(E.nF).padStart(3,'0')}`;c.factDate=today();saveParams();queue();}
+ const sum=PO.reduce((s,p)=>s+p.tot,0),tva=sum*P.tva/100,ttc=sum+tva,acc=isF?(+c.acompteRecu||0):0,ech=(()=>{const d=new Date((c.factDate||today())+'T12:00');d.setDate(d.getDate()+(+E.jours||30));return d.toISOString().slice(0,10);})();
+ const money=n=>nf(n,2);
+ const ctrl=`<div class="card noprint"><div class="g2"><label class="f">Document${sel('docType',{devis:'Devis',facture:'Facture'},c.docType)}</label>
+  ${isF?fld('acompteRecu','Acompte déjà reçu TTC (CHF)',c.acompteRecu,{num:1}):''}</div>
+  ${!E.adr||!E.tel?`<div class="warn">Complétez votre adresse, téléphone${isF?', IBAN':''} et n° TVA dans ⚙ → Mon entreprise.</div>`:''}
+  ${!c.client?`<div class="warn">Indiquez le nom et l'adresse du client dans Métrés.</div>`:''}
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn" type="button" id="pdf">${window.Android?'Enregistrer en PDF / Imprimer':'Copier le texte'}</button>${window.Android?'<button class="btn gh sm" type="button" id="shdoc">Envoyer le texte</button>':''}</div></div>`;
+ const doc=`<article class="doc" id="doc">
+ <header class="dh"><div><div class="dn">${esc(E.nom)}</div><div>${esc(E.adr)}</div><div>${esc(E.npa)}</div><div>${esc(E.tel)}</div><div>${esc(E.mail)}</div>${E.tva?`<div>N° TVA ${esc(E.tva)}</div>`:''}</div>
+ <div class="dc"><div class="dl">${isF?'Facturé à':'Client'}</div><div><b>${esc(c.client||'—')}</b></div><div style="white-space:pre-line">${esc(c.adresse||'')}</div></div></header>
+ <h1 class="dt">${isF?'Facture':'Devis'} N° ${isF?c.factNo:c.devisNo}</h1>
+ <div class="dm"><div><span>Date</span>${fd(isF?c.factDate:c.devisDate)}</div>${isF?`<div><span>Échéance</span>${fd(ech)}</div><div><span>Réf. devis</span>${c.devisNo}</div>`:`<div><span>Valable jusqu'au</span>${(()=>{const d=new Date((c.devisDate||today())+'T12:00');d.setDate(d.getDate()+(+E.valid||30));return fd(d.toISOString().slice(0,10));})()}</div>`}</div>
+ <p class="do"><b>Objet :</b> travaux d'étanchéité – ${esc(TYPES[c.type].toLowerCase())}${c.nom?' – '+esc(c.nom):''}${c.adresse?' – '+esc(c.adresse.split('\n')[0]):''}</p>
+ <p>${isF?`Madame, Monsieur,<br>Nous vous remercions de votre confiance. Conformément à notre devis ${c.devisNo}, nous vous facturons les travaux réalisés suivants :`:`Madame, Monsieur,<br>Suite à notre visite, nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous, exécutés selon les règles de l'art et la norme SIA 271.`}</p>
+ <table class="dtab"><thead><tr><th>Pos.</th><th>Désignation</th><th class="r">Qté</th><th>Unité</th><th class="r">P.U. CHF</th><th class="r">Total CHF</th></tr></thead><tbody>
+ ${PO.map(p=>`<tr><td>${p.pos}</td><td><b>${p.t}</b><br><small>${p.d}</small></td><td class="r">${p.u==='forfait'?'1':nf(p.q,p.u==='ml'?1:0)}</td><td>${p.u}</td><td class="r">${money(p.pu)}</td><td class="r">${money(p.tot)}</td></tr>`).join('')}
+ </tbody></table>
+ <table class="dsum"><tr><td>Total HT</td><td class="r">${money(sum)}</td></tr><tr><td>TVA ${nf(P.tva,1)} %</td><td class="r">${money(tva)}</td></tr><tr class="tt"><td>Total TTC</td><td class="r">CHF ${money(ttc)}</td></tr>
+ ${acc?`<tr><td>Acompte reçu</td><td class="r">– ${money(acc)}</td></tr><tr class="tt"><td>Solde à payer</td><td class="r">CHF ${money(ttc-acc)}</td></tr>`:''}</table>
+ ${isF?`<div class="dcond"><h3>Paiement</h3><p>Payable à ${E.jours} jours net, soit au plus tard le ${fd(ech)}, sur le compte ${E.iban?`<b>IBAN ${esc(E.iban)}</b>`:'IBAN …'} au nom de ${esc(E.nom)}, en mentionnant la référence ${c.factNo}.</p><p>Garantie des travaux selon la norme SIA 118, à compter de la réception.</p></div>`
+ :`<div class="dcond"><h3>Conditions</h3><ul>
+  <li>Offre valable ${E.valid} jours. Prix en francs suisses, TVA ${nf(P.tva,1)} % en sus.</li>
+  <li>Acompte de ${E.acompte} % à la commande, solde à ${E.jours} jours net après réception des travaux.</li>
+  <li>Durée d'exécution estimée : ${k.jours} jour${k.jours>1?'s':''} ouvrable${k.jours>1?'s':''}, sous réserve des conditions météorologiques.</li>
+  <li>Travaux exécutés selon la norme SIA 271 ; garanties selon la norme SIA 118.</li>
+  <li>Non compris : ferblanterie et travaux de façade non mentionnés, échafaudage de façade, maçonnerie, reprise du support après dépose. Travaux imprévus facturés en régie à CHF ${nf(P.regie)}.–/h, après accord du client.</li></ul></div>
+ <div class="dsig"><div>Lieu et date :<br><br>……………………………………</div><div>Bon pour accord, signature du client :<br><br>……………………………………</div></div>`}
+ <p class="dfoot">${isF?'Avec nos remerciements.':'Nous restons à votre disposition pour tout renseignement et vous remercions de votre confiance.'}<br><br>${esc(E.nom)}</p>
+ </article>`;
+ return ctrl+doc;}
+function docText(c){const el=document.getElementById('doc');return el?el.innerText:'';}
 const CHECK={"Avant":["Photos de l'existant prises","Pente contrôlée (minimum 1,5 %) et points bas repérés","Protection anti-chute en place (garde-corps, filets ou harnais)","Météo vérifiée pour toute la durée","Levage, accès et zone de stockage définis","Charge admissible de la dalle vérifiée pour les palettes","Matériel livré et contrôlé contre la commande"],
 "Pendant":["Support propre, sec, primaire sec","Pare-vapeur continu et remonté en périphérie","Isolation sans lacune, joints décalés","Évacuations posées avant les lés","Recouvrements dans le sens de l'écoulement","Relevés au développé prévu, angles renforcés","Trop-plein de sécurité en place","Chantier fermé et lesté chaque soir"],
 "Fin":["Soudures contrôlées sur toute la longueur","Essai d'eau ou contrôle visuel des évacuations","Photos après travaux","Déchets évacués, évacuations nettoyées","Procès-verbal de réception signé"]};
@@ -456,13 +542,14 @@ function openParams(){const d=$('#dlg');
  const num=(k,l,v)=>`<label class="f">${l}<input class="t n" type="number" step="any" min="0" data-p="${k}" value="${v}"></label>`;
  d.innerHTML=`<h2>Paramètres</h2><p class="note">Vos rendements et conditionnements. Ils s'appliquent à tous les chantiers.</p>
  <h3 style="margin-top:16px">Analyse photo (IA)</h3><div class="g2" style="margin-top:8px"><label class="f">Clé API Anthropic <small>console.anthropic.com</small><input class="t" type="password" data-ls="havret-key" autocomplete="off" value="${esc((()=>{try{return localStorage.getItem('havret-key')||''}catch(_){return ''}})())}"></label><label class="f">Modèle<input class="t" data-ls="havret-model" value="${esc((()=>{try{return localStorage.getItem('havret-model')||'claude-sonnet-5-5'}catch(_){return 'claude-sonnet-5-5'}})())}"></label></div><p class="note">La clé reste sur ce téléphone. Chaque analyse coûte quelques centimes.</p>
- <h3 style="margin-top:16px">Coûts et marge</h3><div class="g2" style="margin-top:8px">${num('tauxH','Coût horaire main-d\'œuvre (CHF/h)',P.tauxH)}${num('fg','Frais généraux (%)',P.fg)}${num('marge','Marge (%)',P.marge)}${num('objJour','Objectif de marge par jour (CHF)',P.objJour)}${num('grue','Camion-grue (CHF/livraison)',P.grue)}${num('depl','Déplacement (CHF/jour/2 pers.)',P.depl)}${num('gcMl','Garde-corps location (CHF/ml)',P.gcMl)}${num('tva','TVA (%)',P.tva)}</div>
+ <h3 style="margin-top:16px">Mon entreprise (devis et factures)</h3><div class="g2" style="margin-top:8px">${[['nom','Nom'],['adr','Rue et n°'],['npa','NPA Localité'],['tel','Téléphone'],['mail','E-mail'],['tva','N° TVA (CHE-…)'],['iban','IBAN']].map(([k,l])=>`<label class="f">${l}<input class="t" data-e="${k}" value="${esc(P.ent[k]||'')}"></label>`).join('')}${[['acompte','Acompte (%)'],['jours','Délai de paiement (jours)'],['valid','Validité du devis (jours)']].map(([k,l])=>`<label class="f">${l}<input class="t n" type="number" data-e="${k}" value="${P.ent[k]}"></label>`).join('')}${num('regie','Taux régie (CHF/h)',P.regie)}</div>
+ <h3 style="margin-top:16px">Coûts et marge</h3><div class="g2" style="margin-top:8px">${num('tauxH','Coût horaire complet (salaire + charges + frais fixes, CHF/h)',P.tauxH)}${num('fg','Frais généraux sur matériel et logistique (%)',P.fg)}${num('marge','Marge (%)',P.marge)}${num('objJour','Objectif de marge par jour (CHF)',P.objJour)}${num('grue','Camion-grue (CHF/livraison)',P.grue)}${num('depl','Déplacement (CHF/jour/2 pers.)',P.depl)}${num('gcMl','Garde-corps location (CHF/ml)',P.gcMl)}${num('tva','TVA (%)',P.tva)}</div>
  <h3 style="margin-top:16px">Prix d'achat HT (CHF)</h3><div class="g2" style="margin-top:8px">${Object.entries(PRIXN).map(([k,l])=>num('prix.'+k,l,P.prix[k])).join('')}</div>
  <h3 style="margin-top:16px">Rendements (par personne)</h3><div class="g2" style="margin-top:8px">${Object.entries(PRODN).map(([k,l])=>num('prod.'+k,l,P.prod[k])).join('')}</div>
  <h3 style="margin-top:16px">Matériaux</h3><div class="g2" style="margin-top:8px">${num('recouv','Recouvrement des lés (%)',P.recouv)}${num('chute','Chute (%)',P.chute)}${num('primaire','Primaire (l/m²)',P.primaire)}${num('pvRoul','Pare-vapeur m²/rouleau',P.pvRoul)}${num('b1Roul','Bitume 1re couche m²/rouleau',P.b1Roul)}${num('b2Roul','Bitume ardoisé m²/rouleau',P.b2Roul)}${num('b1Pal','Rouleaux bitume / palette',P.b1Pal)}${num('fpoRoul','FPO m²/rouleau',P.fpoRoul)}${num('gazM2','m² soudés par bouteille 33 kg',P.gazM2)}${num('resKg','Résine kg/m²',P.resKg)}${num('gravEp','Gravier épaisseur (cm)',P.gravEp)}${num('isoPalH','Hauteur palette isolation (m)',P.isoPalH)}${num('isoLay','Panneaux isolation par rang',P.isoLay)}${num('pvPal','Rouleaux pare-vapeur / palette',P.pvPal)}${num('b2Pal','Rouleaux ardoisés / palette',P.b2Pal)}</div>
  <div style="display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="preset">Valeurs par défaut</button><button class="btn" type="button" id="pclose">Fermer</button></div>`;
  d.showModal();
- d.oninput=e=>{if(e.target.dataset.ls){try{localStorage.setItem(e.target.dataset.ls,e.target.value.trim());}catch(_){}return;}const k=e.target.dataset.p;if(!k)return;const v=+e.target.value;if(!(v>0))return;if(k.startsWith('prod.'))P.prod[k.slice(5)]=v;else if(k.startsWith('prix.'))P.prix[k.slice(5)]=v;else P[k]=v;};
+ d.oninput=e=>{if(e.target.dataset.ls){try{localStorage.setItem(e.target.dataset.ls,e.target.value.trim());}catch(_){}return;}if(e.target.dataset.e){const k=e.target.dataset.e;P.ent[k]=e.target.type==='number'?+e.target.value:e.target.value;return;}const k=e.target.dataset.p;if(!k)return;const v=+e.target.value;if(!(v>0))return;if(k.startsWith('prod.'))P.prod[k.slice(5)]=v;else if(k.startsWith('prix.'))P.prix[k.slice(5)]=v;else P[k]=v;};
  $('#pclose').onclick=()=>{d.close();saveParams();render();};
  $('#preset').onclick=()=>{P=JSON.parse(JSON.stringify(DEF));d.close();saveParams();render();};
 }
@@ -485,13 +572,13 @@ async function analyse(){
  const prompt=`Tu es chef de chantier expert en étanchéité de toitures plates en Suisse romande (entreprise Havret Étanchéité). Analyse ${photos.length} photo(s) d'un chantier${g.A?` dont les dimensions saisies sont ${nf(g.L,1)} m × ${nf(g.W,1)} m`:''}.
 Détermine la composition à réaliser selon les règles de l'art et la norme SIA 271:2021 (pente minimale 1,5 %, pare-vapeur sous isolation, relevés au-dessus de la couche de protection, évacuations avec trop-plein de sécurité, protection anti-chute). Ne cite aucun chiffre de norme dont tu n'es pas sûr. Une photo ne montre pas les couches cachées : reste prudent et dis ce qu'il faut vérifier.
 Réponds UNIQUEMENT avec un objet JSON valide :
-{"type":"plat|terrasse|vert|mur","etat":"neuf|reno","systeme":"bitume|fpo|epdm|resine","isolation_mm":0|100|120|140|160|180|200|240,"protection":"aucune|gravier|dalles|vege","evacuations":nombre,"garde_corps":true|false,"developpe_cm":nombre ou null,
+{"type":"plat|terrasse|vert|mur","etat":"neuf|reno","systeme":"bitume|fpo|epdm|resine","isolation_mm":0|100|120|140|160|180|200|240,"protection":"aucune|gravier|dalles|vege","evacuations":nombre,"garde_corps":true|false,"developpe_cm":nombre ou null,"portes_fenetres":nombre,"seuils_ml":nombre ou null,"traversees":nombre,"angles":nombre,
 "resume":"2 phrases pour le chef d'équipe",
 "observations":["ce que tu vois : support, couches existantes, acrotères, évacuations, équipements, 2 à 5 éléments"],
 "risques":["défauts visibles et risques : cloques, flaches, fissures de relevés, végétation, accès, sécurité ; 1 à 5 éléments"],
 "conformite":["ce qu'il faut faire pour être conforme SIA 271 sur ce toit, 2 à 5 éléments"],
 "conseils":["conseils d'exécution concrets : par où commencer, détails délicats, organisation, 2 à 5 éléments"]}
-Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. "evacuations" = nombre visible, au moins 1 pour un toit. "developpe_cm" = hauteur estimée des relevés + retour si une échelle est visible, sinon null. "garde_corps" = vrai seulement si une protection collective existe sur tout le périmètre. Écris en français.`;
+Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. "evacuations" = nombre visible, au moins 1 pour un toit. "developpe_cm" = hauteur estimée des relevés + retour si une échelle est visible, sinon null. "garde_corps" = vrai seulement si une protection collective existe sur tout le périmètre. "portes_fenetres" = portes-fenêtres donnant sur la surface ; "seuils_ml" = largeur totale estimée de leurs seuils (environ 1 m par porte si pas d'échelle) ; "traversees" = pieds de garde-corps, tuyaux, ventilations qui traversent l'étanchéité ; "angles" = angles rentrants et sortants des relevés. Signale dans "risques" un seuil trop bas pour un raccord correct. Écris en français.`;
  try{
   const r=await sample.json(prompt,{images:photos.map(p=>p.b),modelTier:'complex'});
   c.type=pick(r.type,Object.keys(TYPES),c.type);c.etat=pick(r.etat,['neuf','reno'],c.etat);
@@ -499,7 +586,7 @@ Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. 
   c.iso=c.type==='mur'?0:+pick(r.isolation_mm,['0','100','120','140','160','180','200','240'],String(c.iso));
   c.prot=c.type==='mur'?'aucune':pick(r.protection,Object.keys(PROT),c.prot);
   if(+r.evacuations>=0&&r.evacuations!=null)c.evac=Math.min(20,Math.round(+r.evacuations));
-  c.garde=!!r.garde_corps;if(+r.developpe_cm>0&&+r.developpe_cm<200)c.dev=Math.round(+r.developpe_cm);
+  c.garde=!!r.garde_corps;if(+r.portes_fenetres>=0){c.seuils=Math.round(+r.portes_fenetres)||0;c.seuilMl=+r.seuils_ml>0?Math.round(+r.seuils_ml*10)/10:c.seuils;}if(+r.traversees>=0)c.trav=Math.round(+r.traversees)||0;if(+r.angles>=0)c.angles=Math.round(+r.angles)||0;if(+r.developpe_cm>0&&+r.developpe_cm<200)c.dev=Math.round(+r.developpe_cm);
   const A=a=>Array.isArray(a)?a.slice(0,5).map(x=>String(x).slice(0,240)):[];
   c.ai={resume:String(r.resume||'').slice(0,400),obs:A(r.observations),risques:A(r.risques),conf:A(r.conformite),conseils:A(r.conseils)};
   pstat='';persist();render();
@@ -510,7 +597,7 @@ Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. 
 app.addEventListener('input',e=>{if(!cur)return;const el=e.target,id=el.id;
  if(el.dataset.ck){cur.check[el.dataset.ck]=el.checked;queue();render();return;}
  if(!id||!(id in cur))return;
- const nums=['L','W','dev','team','hday','evac','iso'];
+ const nums=['L','W','dev','team','hday','evac','iso','seuils','seuilMl','trav','angles','acompteRecu'];
  cur[id]=el.type==='checkbox'?el.checked:id==='relMl'?(el.value===''?'':Math.max(0,+el.value)):nums.includes(id)?Math.max(0,+el.value||0):el.value;
  if(id==='type'&&cur.type==='mur'&&!['bitume','resine'].includes(cur.sys))cur.sys='bitume';
  queue();
@@ -519,6 +606,8 @@ app.addEventListener('input',e=>{if(!cur)return;const el=e.target,id=el.id;
 app.addEventListener('click',e=>{
  const o=e.target.closest('[data-open]');if(o){const c=list.find(x=>x.id===o.dataset.open);if(c){cur=JSON.parse(JSON.stringify(c));if(!cur.check)cur.check={};tab="metres";render();window.scrollTo(0,0);}return;}
  const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;render();return;}
+ if(e.target.id==='pdf'){const t=(cur.docType==='facture'?'Facture '+cur.factNo:'Devis '+cur.devisNo);if(window.Android&&window.Android.print){window.Android.print(t);}else{navigator.clipboard.writeText(docText(cur)).then(()=>{e.target.textContent='Copié ✓';},()=>{e.target.textContent='Copie impossible';});}return;}
+ if(e.target.id==='shdoc'){window.Android.share(docText(cur));return;}
  if(e.target.id==='analyse'){analyse();return;}
  if(e.target.id==='clearph'){photos=[];pstat='';render();return;}
  if(e.target.id==='dup'){const n={...JSON.parse(JSON.stringify(cur)),id:NEW().id,nom:(cur.nom||'Chantier')+' (copie)',check:{},statut:'prevu'};cur=n;persist();render();return;}
