@@ -1,7 +1,10 @@
 package ch.havret.chantier;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -40,6 +43,8 @@ public class MainActivity extends Activity {
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
     private Uri cameraUri;
+    private volatile Uri lastBackup;
+    private static final String BK_DIR = "Download/Havret Chantier/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +69,9 @@ public class MainActivity extends Activity {
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = callback;
+                boolean images = false;
+                for (String t : params.getAcceptTypes()) if (t != null && (t.startsWith("image") || t.isEmpty())) images = true;
+                if (!images) { openFilePicker(); return true; }
                 openPicker(params.isCaptureEnabled(), params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE);
                 return true;
             }
@@ -109,6 +117,49 @@ public class MainActivity extends Activity {
             if (fileCallback != null) fileCallback.onReceiveValue(null);
             fileCallback = null;
         }
+    }
+
+    /** Choisir un fichier quelconque (par ex. une sauvegarde .json), sans appareil photo. */
+    private void openFilePicker() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        cameraUri = null;
+        try {
+            startActivityForResult(Intent.createChooser(i, "Choisir la sauvegarde"), REQ_FILE);
+        } catch (Exception e) {
+            if (fileCallback != null) fileCallback.onReceiveValue(null);
+            fileCallback = null;
+        }
+    }
+
+    /** Cherche un fichier de sauvegarde déjà créé par l'application (même nom) dans Téléchargements/Havret Chantier. */
+    private Uri findBackup(String name) {
+        ContentResolver cr = getContentResolver();
+        Uri col = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+        try (Cursor c = cr.query(col, new String[]{MediaStore.Downloads._ID},
+                MediaStore.Downloads.DISPLAY_NAME + "=? AND " + MediaStore.Downloads.RELATIVE_PATH + "=?",
+                new String[]{name, BK_DIR}, null)) {
+            if (c != null && c.moveToFirst()) return ContentUris.withAppendedId(col, c.getLong(0));
+        } catch (Exception ignored) { }
+        return null;
+    }
+
+    /** Garde seulement les 14 sauvegardes les plus récentes. */
+    private void pruneBackups() {
+        ContentResolver cr = getContentResolver();
+        Uri col = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+        try (Cursor c = cr.query(col, new String[]{MediaStore.Downloads._ID},
+                MediaStore.Downloads.RELATIVE_PATH + "=? AND " + MediaStore.Downloads.DISPLAY_NAME + " LIKE 'havret-sauvegarde-%'",
+                new String[]{BK_DIR}, MediaStore.Downloads.DISPLAY_NAME + " DESC")) {
+            if (c == null) return;
+            int n = 0;
+            while (c.moveToNext()) {
+                if (++n > 14) {
+                    try { cr.delete(ContentUris.withAppendedId(col, c.getLong(0)), null, null); } catch (Exception ignored) { }
+                }
+            }
+        } catch (Exception ignored) { }
     }
 
     @Override
@@ -168,6 +219,46 @@ public class MainActivity extends Activity {
                         .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
                         .build());
             });
+        }
+
+        /** Écrit la sauvegarde dans Téléchargements/Havret Chantier (remplace le fichier du jour). Renvoie "ok" ou "err:...". */
+        @JavascriptInterface
+        public synchronized String saveBackup(String name, String json) {
+            try {
+                ContentResolver cr = getContentResolver();
+                Uri uri = findBackup(name);
+                if (uri == null) {
+                    ContentValues v = new ContentValues();
+                    v.put(MediaStore.Downloads.DISPLAY_NAME, name);
+                    v.put(MediaStore.Downloads.MIME_TYPE, "application/json");
+                    v.put(MediaStore.Downloads.RELATIVE_PATH, BK_DIR);
+                    uri = cr.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                }
+                if (uri == null) return "err:insert";
+                try (OutputStream os = cr.openOutputStream(uri, "wt")) {
+                    if (os == null) return "err:open";
+                    os.write(json.getBytes(StandardCharsets.UTF_8));
+                }
+                lastBackup = uri;
+                pruneBackups();
+                return "ok";
+            } catch (Exception e) {
+                return "err:" + e.getMessage();
+            }
+        }
+
+        /** Envoie le dernier fichier de sauvegarde (e-mail, Drive, WhatsApp…). */
+        @JavascriptInterface
+        public String shareBackup() {
+            final Uri u = lastBackup;
+            if (u == null) return "err:none";
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("application/json");
+            i.putExtra(Intent.EXTRA_STREAM, u);
+            i.putExtra(Intent.EXTRA_SUBJECT, "Sauvegarde Havret Chantier");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            runOnUiThread(() -> startActivity(Intent.createChooser(i, "Envoyer la sauvegarde")));
+            return "ok";
         }
 
         @JavascriptInterface
