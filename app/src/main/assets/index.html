@@ -90,6 +90,10 @@ tr.cat td{background:var(--con);font-weight:700;font-size:13px;padding:6px 8px}
 .doc .dsig{display:flex;gap:30px;justify-content:space-between;margin-top:26px;font-size:12.5px;flex-wrap:wrap}.doc .dfoot{margin-top:22px}
 @media(max-width:600px){.doc{padding:18px 14px}.doc .dtab th:nth-child(4),.doc .dtab td:nth-child(4){display:none}}
 @media print{body{background:#fff}header,.tabs,.kpi,.foot,.noprint,#app>.kpi{display:none!important}.wrap{padding:0}.doc{border:0;padding:0;max-width:none;margin:0}@page{size:A4;margin:16mm}}
+.seg.nav{display:flex;flex-wrap:wrap;width:100%}.seg.nav button{flex:1 1 auto;text-align:center;padding:10px 8px;font-size:14px}
+.qrb{display:grid;grid-template-columns:62mm 1fr;border-top:1px dashed #000;margin-top:24px;font:9pt/1.3 Arial,Helvetica,sans-serif;color:#000;page-break-inside:avoid;break-inside:avoid}.qrb h4{font-size:11pt;margin:0 0 6px}.qrb b{font-size:6.5pt;display:block;margin-top:5px}.qrb p{margin:0 0 3px;font-size:8.5pt}.qrr{padding:5mm;border-right:1px dashed #000}.qrp{padding:5mm}.qgrid{display:grid;grid-template-columns:52mm 1fr;gap:4mm}.qam{display:flex;gap:6mm;margin-top:4mm}.qdp{text-align:right;margin-top:6mm}.qbox{display:block;width:52mm;height:20mm;border:1px solid #000}.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pgrid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px}
+@media(max-width:600px){.qrb{grid-template-columns:1fr}.qrr{border-right:0;border-bottom:1px dashed #000}.qgrid{grid-template-columns:1fr}}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px;background:var(--card)}.seg button{all:unset;cursor:pointer;padding:10px 16px;font-size:15px;font-weight:600;color:var(--mut)}.seg button.on{background:var(--pet);color:#fff}.seg button:focus-visible{outline:3px solid var(--acc)}
 dialog{border:0;border-radius:16px;padding:20px;max-width:440px;width:calc(100% - 32px);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:#0008}
 @media(max-width:600px){.hide-s{display:none}.tabs button{padding:12px 9px;font-size:14px}}
@@ -120,7 +124,8 @@ const DEF={
  b2Roul:8, b2Kg:46, b2Pal:15,              /* bitume couche de surface ardoisée (EP5) */
  gazM2:130,            /* m² de lés soudés par bouteille de propane 33 kg */
  fpoRoul:40, fpoKg:58, fpoPal:20,          /* FPO/PVC rouleau 2 × 20 m */
- fixM2:4.5,            /* fixations mécaniques par m² (membrane non lestée) */
+ fixM2:4.5,
+ espSolin:25,espRive:20,espTole:20,espPatte:100, /* entraxes de fixation (cm) */            /* fixations mécaniques par m² (membrane non lestée) */
  epdmKgM2:1.4,         /* EPDM kg/m² */
  colleM2:0.3,          /* l/m² colle de contact (relevés EPDM/FPO) */
  resPrim:0.3, resKg:2.8, resSeau:10, voileRoul:52.5,  /* résine : primaire kg/m², résine kg/m², seau kg, voile m²/rouleau */
@@ -131,14 +136,36 @@ const DEF={
  subEp:8,              /* substrat végétalisation cm */
  /* PRIX D'ACHAT HT (CHF) par conditionnement — indicatifs, à remplacer par vos prix fournisseur */
  /* swisspor liste de prix 2026 (prix bruts HT) + supplément bitume 15 % dès le 20.04.2026 ; autres = estimations */
- prix:{benne:650,prim:35,pv:107,isoMm:0.305,b1:111.3,b2:128.8,gaz:95,fpo:520,fix:180,colle:70,tole:38,epdm:18,jonc:90,rprim:310,res:250,voile:302.4,naiss:120,tp:160,geo:230,grav:95,dal:8,plots:160,natte:230,sub:180,sedum:28,nmur:110},
+ prix:{benne:650,prim:35,pv:107,isoMm:0.305,b1:111.3,b2:128.8,gaz:95,fpo:520,fix:180,colle:70,tole:38,epdm:18,jonc:90,rprim:310,res:250,voile:302.4,naiss:120,tp:160,geo:230,grav:95,dal:8,plots:160,natte:230,sub:180,sedum:28,nmur:110,chev:18,visx:28,mastic:12,patte:4.5,ecl:7},
  /* COÛTS */
+ cpt:{assuj:true,meth:'eff',tdfn:''},
+ taperSup:15, /* supplément prix éléments de pente PIR (%) */
  tauxH:85, regie:95, /* coût horaire complet : salaire + charges + frais fixes */
  ent:{nom:'Havret Étanchéité',adr:'',npa:'',tel:'',mail:'',tva:'',iban:'',acompte:30,jours:30,valid:30,nD:0,nF:0}, grue:480, depl:60, gcMl:12, fg:5, marge:10, tva:8.1, objJour:900,
- prod:{seuil:1.5,trav:0.75,angle:0.3,depose:3,prim:25,pv:12,iso:10,b1:15,b2:13,fpo:9,epdm:10,res:3,rel:1.5,evac:2,geo:30,grav:6,dal:2.5,veg:4,instal:6,repli:4,controle:3}
+ acc:Object.fromEntries([['tp',160,2],['naissL',140,2.5],['pgr',75,0.3],['cdc',95,1.5],['vent',85,1.5],['aer',45,0.75],['lant',60,3],['chem',70,2.5],['pied',25,0.75],['ancr',180,1.5],['ldv',65,0.5],['jd',45,0.8],['rive',22,0.25],['couv',55,0.4],['chen',35,0.5],['solin',28,0.25]].map(([k,p,h])=>[k,{p,h}])),
+ prod:{isoP:6,seuil:1.5,trav:0.75,angle:0.3,depose:3,prim:25,pv:12,iso:10,b1:15,b2:13,fpo:9,epdm:10,res:3,rel:1.5,evac:2,geo:30,grav:6,dal:2.5,veg:4,instal:6,repli:4,controle:3}
 };
-const PRIXN={benne:"Benne 7 m³ (pièce)",prim:"Enduit d'apprêt VS (bidon 10 l)",pv:"Pare-vapeur (rouleau)",isoMm:"Isolation PIR (CHF par m² et par mm)",b1:"Bitume EP4 (rouleau)",b2:"Bitume ardoisé EP5 (rouleau)",gaz:"Propane 33 kg (bouteille)",fpo:"FPO/PVC (rouleau)",fix:"Fixations (boîte 250)",colle:"Colle (bidon 5 l)",tole:"Tôle colaminée (barre 2 m)",epdm:"EPDM (m²)",jonc:"Bande de jonction EPDM (rouleau)",rprim:"Primaire résine (seau 10 kg)",res:"Résine (seau)",voile:"Voile FLK (rouleau 1,05 × 50 m)",naiss:"Naissance EP + crapaudine",tp:"Trop-plein de sécurité",geo:"Géotextile (rouleau)",grav:"Gravier (big bag 1 t)",dal:"Dalle 50 × 50 (pièce)",plots:"Plots (carton 50)",natte:"Natte drainante (rouleau)",sub:"Substrat (big bag 1 m³)",sedum:"Sedum (m²)",nmur:"Natte à excroissances (rouleau)"};
-const PRODN={seuil:"Raccord de seuil (h/ml)",trav:"Traversée (h/pièce)",angle:"Angle rentrant/sortant (h/pièce)",depose:"Dépose ancienne étanchéité (m²/h)",prim:"Primaire (m²/h)",pv:"Pare-vapeur (m²/h)",iso:"Isolation (m²/h)",b1:"Bitume 1re couche (m²/h)",b2:"Bitume 2e couche (m²/h)",fpo:"Membrane FPO (m²/h)",epdm:"Membrane EPDM (m²/h)",res:"Résine (m²/h)",rel:"Relevés (ml/h, toutes couches)",evac:"Évacuation (h/pièce)",geo:"Géotextile (m²/h)",grav:"Gravier (m²/h)",dal:"Dalles sur plots (m²/h)",veg:"Végétalisation (m²/h)",instal:"Installation chantier (h)",repli:"Repli et nettoyage (h)",controle:"Contrôle final (h)"};
+const ACC=[
+ ['tp','Trop-plein de sécurité','pce',160,2],
+ ['naissL','Naissance latérale / gargouille (traversée d\'acrotère)','pce',140,2.5],
+ ['pgr','Cadre pare-gravier sur naissance','pce',75,0.3],
+ ['cdc','Col de cygne (passage de câbles / conduits)','pce',95,1.5],
+ ['vent','Ventilation / chapeau de ventilation','pce',85,1.5],
+ ['aer','Aérateur de toiture (décompression pare-vapeur)','pce',45,0.75],
+ ['lant','Lanterneau / coupole (relevé périphérique)','pce',60,3],
+ ['chem','Sortie de cheminée / gaine (raccord)','pce',70,2.5],
+ ['pied','Pied de garde-corps / potelet (manchette)','pce',25,0.75],
+ ['ancr','Point d\'ancrage anti-chute','pce',180,1.5],
+ ['ldv','Ligne de vie','ml',65,0.5],
+ ['jd','Joint de dilatation','ml',45,0.8],
+ ['rive','Profil de rive / bande de rive','ml',22,0.25],
+ ['couv','Couvertine d\'acrotère','ml',55,0.4],
+ ['chen','Chéneau / raccord de chéneau','ml',35,0.5],
+ ['solin','Solin / bande de serrage en tête de relevé (contre mur)','ml',28,0.25]];
+const ACCD={tp:"Trop-plein de sécurité traversant l'acrotère, raccordé à l'étanchéité",naissL:"Naissance latérale traversant l'acrotère, avec manchon raccordé à l'étanchéité",pgr:"Cadre pare-gravier posé sur naissance, évacuation maintenue dégagée",cdc:"Col de cygne pour passage de câbles ou de conduits, raccordé à l'étanchéité",vent:"Chapeau de ventilation sur tuyau, manchette d'étanchéité soudée",aer:"Aérateur de toiture pour la décompression de l'isolation et du pare-vapeur",lant:"Relevé d'étanchéité en périphérie de lanterneau ou coupole, angles renforcés",chem:"Raccord d'étanchéité autour de sortie de cheminée ou gaine, avec bande de recouvrement",pied:"Manchette d'étanchéité autour de pied de garde-corps ou potelet",ancr:"Point d'ancrage anti-chute fixé à la structure et étanché",ldv:"Ligne de vie fixée à la structure, supports étanchés",jd:"Joint de dilatation avec profil compressible et double recouvrement d'étanchéité",rive:"Profil de rive en tôle, fixé et recouvert par l'étanchéité",couv:"Couvertine d'acrotère en tôle thermolaquée, fixée sur pattes, avec recouvrements",chen:"Raccord d'étanchéité au chéneau",solin:"Solin en tôle fixé en tête de relevé, joint mastic en partie haute"};
+const accQ=(c,k)=>{const a=c.acc||{};if(a[k]!=null&&a[k]!=='')return +a[k]||0;if(k==='tp')return c.type!=='mur'&&+c.evac>0?Math.max(1,ceil(c.evac/2)):0;if(k==='pgr')return c.prot==='gravier'?+c.evac||0:0;if(k==='rive')return 0;if(k==='solin'){if(c.type==='mur')return 0;const g=geo(c);return Math.max(0,Math.round(g.rel-accQ(c,'couv')-accQ(c,'rive')));}return 0;};
+const PRIXN={chev:"Chevilles à frapper 6 × 40 (boîte 100)",visx:"Vis inox + rondelle EPDM (boîte 100)",mastic:"Mastic PU / MS (cartouche 310 ml)",patte:"Patte de couvertine (pièce)",ecl:"Éclisse de couvertine (pièce)",benne:"Benne 7 m³ (pièce)",prim:"Enduit d'apprêt VS (bidon 10 l)",pv:"Pare-vapeur (rouleau)",isoMm:"Isolation PIR (CHF par m² et par mm)",b1:"Bitume EP4 (rouleau)",b2:"Bitume ardoisé EP5 (rouleau)",gaz:"Propane 33 kg (bouteille)",fpo:"FPO/PVC (rouleau)",fix:"Fixations (boîte 250)",colle:"Colle (bidon 5 l)",tole:"Tôle colaminée (barre 2 m)",epdm:"EPDM (m²)",jonc:"Bande de jonction EPDM (rouleau)",rprim:"Primaire résine (seau 10 kg)",res:"Résine (seau)",voile:"Voile FLK (rouleau 1,05 × 50 m)",naiss:"Naissance EP + crapaudine",tp:"Trop-plein de sécurité",geo:"Géotextile (rouleau)",grav:"Gravier (big bag 1 t)",dal:"Dalle 50 × 50 (pièce)",plots:"Plots (carton 50)",natte:"Natte drainante (rouleau)",sub:"Substrat (big bag 1 m³)",sedum:"Sedum (m²)",nmur:"Natte à excroissances (rouleau)"};
+const PRODN={isoP:"Isolation pentée (m²/h)",seuil:"Raccord de seuil (h/ml)",trav:"Traversée (h/pièce)",angle:"Angle rentrant/sortant (h/pièce)",depose:"Dépose ancienne étanchéité (m²/h)",prim:"Primaire (m²/h)",pv:"Pare-vapeur (m²/h)",iso:"Isolation (m²/h)",b1:"Bitume 1re couche (m²/h)",b2:"Bitume 2e couche (m²/h)",fpo:"Membrane FPO (m²/h)",epdm:"Membrane EPDM (m²/h)",res:"Résine (m²/h)",rel:"Relevés (ml/h, toutes couches)",evac:"Évacuation (h/pièce)",geo:"Géotextile (m²/h)",grav:"Gravier (m²/h)",dal:"Dalles sur plots (m²/h)",veg:"Végétalisation (m²/h)",instal:"Installation chantier (h)",repli:"Repli et nettoyage (h)",controle:"Contrôle final (h)"};
 const SYS={bitume:"Bitume bicouche",fpo:"Membrane FPO / PVC",epdm:"Membrane EPDM",resine:"Résine liquide"};
 const PROT={aucune:"Aucune (apparente)",gravier:"Gravier 16/32",dalles:"Dalles sur plots",vege:"Végétalisation extensive"};
 const TYPES={plat:"Toit plat",terrasse:"Terrasse / balcon",vert:"Toiture végétalisée",mur:"Murs enterrés"};
@@ -152,10 +179,52 @@ const $=s=>document.querySelector(s),app=$('#app');
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nf=(n,d=0)=>Number(n).toLocaleString('fr-CH',{maximumFractionDigits:d,minimumFractionDigits:d}).replace(/[  ’]/g,"'");
 const ceil=Math.ceil;
-const plu=(pack,n)=>{if(n<2||/^(nappe)$/.test(pack))return pack;if(/^big bag/.test(pack))return pack.replace('big bag','big bags');const w=pack.split(' ');w[0]=w[0].replace(/^(.*?)(eau|s)?$/,(m,a,b)=>b==='eau'?a+'eaux':b==='s'?m:a+'s');return w.join(' ');};
+const plu=(pack,n)=>{if(n<2||/^(nappe|ml|forfait|m³|m²)$/.test(pack))return pack;if(/^big bag/.test(pack))return pack.replace('big bag','big bags');const w=pack.split(' ');w[0]=w[0].replace(/^(.*?)(eau|s)?$/,(m,a,b)=>b==='eau'?a+'eaux':b==='s'?m:a+'s');return w.join(' ');};
 
 /* ===================== CALCULS ===================== */
-function geo(c){const L=+c.L||0,W=+c.W||0,A=c.type==="mur"?L*W:L*W;const per=c.relMl===''||c.relMl==null?2*(L+W):+c.relMl;return{L,W,A,rel:c.type==="mur"?0:per,dev:(+c.dev||0)/100};}
+function geo(c){const L=+c.L||0,W=+c.W||0,A=+c.surfO>0?+c.surfO:L*W;const per=c.relMl===''||c.relMl==null?2*(L+W):+c.relMl;return{L,W,A,rel:c.type==="mur"?0:per,dev:(+c.dev||0)/100};}
+function taper(c){
+ const g=geo(c),mx=Math.max(g.L,g.W)||1,mn=Math.min(g.L,g.W)||1,p=Math.max(0.5,+c.penteP||2)/100,pc=Math.max(0.3,+c.canP||1)/100,n=Math.max(1,+c.evac||1);
+ const opt=k=>{if(k===0){const h=p*mn;return{k,label:'Pente unique vers un long côté',hMax:h,hMoy:h/2,run:mn};}
+  const h1=p*mn/(2*k),per=Math.max(1,n/k),h2=pc*mx/(2*per);return{k,label:`${k} caniveau${k>1?'x':''}`,hMax:h1+h2,hMoy:(h1+h2)/2,run:mn/(2*k),h1,h2,per:Math.round(per*10)/10};};
+ const opts=[0,1,2,3].map(opt).map(o=>({...o,vol:g.A*o.hMoy,cost:g.A*o.hMoy*P.prix.isoMm*1000*(1+P.taperSup/100)}));
+ const cur=opts[Math.min(3,Math.max(0,+c.canK||0))];
+ return{on:c.pente==='pentee'&&c.type!=='mur',p:p*100,pc:pc*100,n,mx,mn,opts,cur};
+}
+function normes(c){
+ const g=geo(c),T=taper(c),N=[],isRoof=c.type!=='mur',base=(+c.iso||0)/10,prot={gravier:5,dalles:8,vege:10,aucune:0}[c.prot]||0,build=Math.round(base+(T.on?T.cur.hMax*100:0)+1+prot);
+ if(!isRoof)return[[null,"Murs enterrés : étanchéité continue jusqu'au-dessus du terrain fini, protégée avant remblayage."]];
+ if(T.on)N.push([T.p>=1.5,`Pente de l'étanchéité ${nf(T.p,1)} % (minimum 1,5 % selon SIA 271).`]);
+ else N.push([null,"Pente du support à mesurer sur place : minimum 1,5 % selon SIA 271. Sinon, choisir l'isolation pentée ci-dessus."]);
+ if(T.on&&T.cur.k>0)N.push([null,`Caniveaux à ${nf(T.pc,1)} % : faire valider la pente minimale des caniveaux par le fabricant du système et vérifier l'absence de flaches au droit des naissances.`]);
+ N.push([+c.evac>0,+c.evac>0?`${c.evac} naissance${c.evac>1?'s':''}, soit ${nf(g.A/Math.max(1,c.evac))} m² par naissance : dimensionnement à vérifier selon SN 592000.`:"Aucune naissance saisie : toute toiture plate doit être évacuée."]);
+ N.push([accQ(c,'tp')>0,accQ(c,'tp')>0?`${accQ(c,'tp')} trop-plein${accQ(c,'tp')>1?'s':''} de sécurité prévu${accQ(c,'tp')>1?'s':''}.`:"Aucun trop-plein de sécurité : à prévoir."]);
+ if(+c.iso>0)N.push([true,"Pare-vapeur sous l'isolation, remonté en périphérie, prévu au devis."]);
+ const ah=+c.acrH||0;
+ N.push([ah?ah>build:null,ah?`Acrotère ${ah} cm pour un complexe d'environ ${build} cm : ${ah>build?'le relevé peut dépasser la couche de protection, hauteur minimale exigée à contrôler':'acrotère trop bas, rehausse à prévoir'}.`:`Complexe d'environ ${build} cm d'épaisseur : vérifier que l'acrotère permet un relevé au-dessus de la couche de protection.`]);
+ if(!c.garde)N.push([accQ(c,'ancr')+accQ(c,'ldv')>0,accQ(c,'ancr')+accQ(c,'ldv')>0?"Protection anti-chute pour l'entretien prévue (ancrages / ligne de vie).":"Pas de garde-corps ni d'ancrage : prévoir une protection anti-chute permanente pour l'entretien."]);
+ if(+c.seuils>0)N.push([null,`${c.seuils} seuil${c.seuils>1?'s':''} de porte-fenêtre : contrôler la hauteur de raccord sous chaque seuil.`]);
+ if(g.A>0&&(g.L>40||g.W>40)&&!accQ(c,'jd'))N.push([null,"Grande surface : vérifier la nécessité de joints de dilatation selon la structure."]);
+ return N;
+}
+const vNormes=c=>`<div class="card sec"><h2>Conformité</h2><p class="note" style="margin-top:4px">Contrôle automatique d'après les données saisies, à confirmer sur place.</p>${normes(c).map(([ok,t])=>`<div class="chk" style="cursor:default"><span style="flex:none;font-weight:800;color:${ok===true?'var(--ok)':ok===false?'var(--accd)':'var(--pet2)'}">${ok===true?'✓':ok===false?'!':'?'}</span><span style="text-decoration:none;color:var(--ink)">${t}</span></div>`).join('')}</div>`;
+function taperSVG(c,T){const g=geo(c),L=Math.max(g.L,1),W=Math.max(g.W,1),k=T.cur.k,horiz=L>=W,fs=Math.max(0.4,Math.min(L,W)/16);
+ let s=`<svg viewBox="-1 -1 ${L+2} ${W+2}" role="img" aria-label="Schéma de l'isolation pentée vu du dessus"><defs><marker id="ta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff5a2e"/></marker></defs><rect width="${L}" height="${W}" fill="#3b4348" stroke="#11222a" stroke-width="${fs*0.2}"/>`;
+ const ar=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ff5a2e" stroke-width="${fs*0.18}" marker-end="url(#ta)"/>`;
+ if(k===0){for(let i=1;i<=3;i++){const f=i/4;s+=horiz?ar(L*f,W*0.15,L*f,W*0.85):ar(L*0.15,W*f,L*0.85,W*f);}
+  const n=Math.max(1,+c.evac||1);for(let i=0;i<n;i++){const f=(i+0.5)/n;s+=`<circle cx="${horiz?L*f:W>0?L-0.5:0}" cy="${horiz?W-0.5:W*f}" r="${fs*0.5}" fill="#5fa6bd" stroke="#fff" stroke-width="${fs*0.1}"/>`;}}
+ else{const per=Math.max(1,Math.round((+c.evac||1)/k));for(let j=0;j<k;j++){const f=(2*j+1)/(2*k);const cy=W*f,cx=L*f;
+   s+=horiz?`<line x1="0" y1="${cy}" x2="${L}" y2="${cy}" stroke="#7fb6c7" stroke-width="${fs*0.35}" stroke-dasharray="${fs*0.5} ${fs*0.3}"/>`:`<line x1="${cx}" y1="0" x2="${cx}" y2="${W}" stroke="#7fb6c7" stroke-width="${fs*0.35}" stroke-dasharray="${fs*0.5} ${fs*0.3}"/>`;
+   const band=(horiz?W:L)/k;for(let i=1;i<=3;i++){const t=i/4;if(horiz){s+=ar(L*t,cy-band*0.45,L*t,cy-band*0.12)+ar(L*t,cy+band*0.45,L*t,cy+band*0.12);}else{s+=ar(cx-band*0.45,W*t,cx-band*0.12,W*t)+ar(cx+band*0.45,W*t,cx+band*0.12,W*t);}}
+   for(let i=0;i<per;i++){const q=(i+0.5)/per;s+=`<circle cx="${horiz?L*q:cx}" cy="${horiz?cy:W*q}" r="${fs*0.55}" fill="#5fa6bd" stroke="#fff" stroke-width="${fs*0.1}"/>`;}}}
+ return s+'</svg>';}
+function vTaper(c){if(c.type==='mur')return '';const T=taper(c);
+ return `<div class="card sec"><h2>Pente</h2><div class="g2" style="margin-top:12px"><label class="f">Pente de l'étanchéité${sel('pente',{support:'Donnée par le support (existante)',pentee:'Isolation pentée à poser'},c.pente)}</label>
+ ${T.on?`${fld('penteP','Pente des versants (%)',c.penteP,{num:1,hint:'minimum 1,5 %'})}${fld('canP','Pente des caniveaux (%)',c.canP,{num:1})}<label class="f">Solution${sel('canK',{0:'Pente unique',1:'1 caniveau',2:'2 caniveaux',3:'3 caniveaux'},c.canK)}</label>`:''}
+ ${fld('acrH',"Hauteur d'acrotère disponible (cm)",c.acrH,{num:1,ph:'facultatif'})}</div>
+ ${T.on?`<div class="plan" style="margin-top:12px">${taperSVG(c,T)}</div><p class="note">Vue du dessus : flèches = sens de la pente, pointillés bleus = caniveaux, ronds = naissances. Épaisseur nulle aux naissances, maximale aux points hauts.</p>
+ <table style="margin-top:10px"><thead><tr><th>Solution</th><th class="r">Ép. max</th><th class="r">Volume</th><th class="r">Coût PIR</th></tr></thead><tbody>${T.opts.map(o=>`<tr style="${o.k===T.cur.k?'font-weight:700;background:var(--con)':''}"><td>${o.label}</td><td class="r">${nf(o.hMax*1000)} mm</td><td class="r">${nf(o.vol,1)} m³</td><td class="r">${chf(o.cost)}</td></tr>`).join('')}</tbody></table>
+ <p class="note">Épaisseurs des éléments de pente, à ajouter à l'isolation de base (${+c.iso||0} mm). Les caniveaux réduisent l'épaisseur maximale et le volume, mais ajoutent des coupes et des points bas à soigner.</p>`:''}</div>`;}
 function materials(c){
  const g=geo(c),A=g.A,rec=1+P.recouv/100,ch=1+P.chute/100,relA=g.rel*g.dev,out=[];
  const add=(cat,k,name,qty,unit,pack,packN,kg,perPal,use,pid,pu)=>out.push({cat,k,name,qty,unit,pack,packN,kg,perPal,use,pid,pu:pu!=null?pu:(P.prix[pid]||0),cost:packN*(pu!=null?pu:(P.prix[pid]||0))});
@@ -164,6 +233,7 @@ function materials(c){
  if(c.sys!=="resine"&&bitumeVP){const l=(A+relA)*P.primaire;add("Préparation","acc","Enduit d'apprêt bitumineux VS",l,"l","bidon "+P.bidonPrim+" l",ceil(l/P.bidonPrim),ceil(l/P.bidonPrim)*P.bidonPrim,0,1,"prim");}
  if(hasIso){const m=(A+g.rel*0.15)*rec;add("Pare-vapeur","pv","Pare-vapeur BIKUPLAN EGV 3.5",m,"m²","rouleau "+P.pvRoul+" m²",ceil(m/P.pvRoul),ceil(m/P.pvRoul)*P.pvKg,P.pvPal,2,"pv");
   const m2=A*ch,np=ceil(m2/P.isoPan);const panPal=Math.max(1,P.isoLay*Math.floor(P.isoPalH/(c.iso/1000)));
+  {const T=taper(c);if(T.on){const v=T.cur.vol*ch;add("Isolation","iso",`Éléments de pente PIR ${nf(T.p,1)} %${T.cur.k?` + ${T.cur.k} caniveau${T.cur.k>1?'x':''}`:''} (0 à ${nf(T.cur.hMax*1000)} mm)`,v,"m³","m³",Math.ceil(v*10)/10,v*P.isoDens,0,3,"iso",P.prix.isoMm*1000*(1+P.taperSup/100));}}
   add("Isolation","iso",`Panneaux PIR ${c.iso} mm (1200 × 600)`,m2,"m²","panneau "+P.isoPan+" m²",np,m2*c.iso/1000*P.isoDens,panPal,3,"iso",P.prix.isoMm*P.isoPan*c.iso);}
  if(c.sys==="bitume"){const m1=(A+relA)*rec,m2=(A+relA)*rec;
   add("Étanchéité","b1","BIKUTOP EP4 WF flam (1re couche)",m1,"m²","rouleau "+P.b1Roul+" m²",ceil(m1/P.b1Roul),ceil(m1/P.b1Roul)*P.b1Kg,P.b1Pal,4,"b1");
@@ -180,7 +250,18 @@ function materials(c){
   add("Étanchéité","res","Résine d'étanchéité (2 passes)",kr,"kg","seau "+P.resSeau+" kg",ceil(kr/P.resSeau),ceil(kr/P.resSeau)*P.resSeau,36,4,"res");
   add("Étanchéité","res","Voile de renfort polyester",v,"m²","rouleau "+P.voileRoul+" m²",ceil(v/P.voileRoul),ceil(v/P.voileRoul)*8,0,4,"voile");}
  if(c.sys==="bitume"||(c.sys!=="resine"&&bitumeVP)){const m=((hasIso?A:0)+(c.sys==="bitume"?2*(A+relA):0))*rec;if(m>0){const n=ceil(m/P.gazM2);add("Consommables","acc","Propane 33 kg",n,"bouteille","bouteille",n,n*33*2,0,2,"gaz");}}
- if(isRoof&&c.evac>0){add("Évacuations","acc","Naissance EP + crapaudine",+c.evac,"pce","pièce",+c.evac,+c.evac*3,0,6,"naiss");add("Évacuations","acc","Trop-plein de sécurité",Math.max(1,ceil(c.evac/2)),"pce","pièce",Math.max(1,ceil(c.evac/2)),3,0,6,"tp");}
+ if(isRoof&&c.evac>0){add("Évacuations","acc","Naissance EP + crapaudine",+c.evac,"pce","pièce",+c.evac,+c.evac*3,0,6,"naiss")}
+ for(const [k,l,u] of ACC){const q=accQ(c,k);if(q>0){const a=P.acc[k]||{p:0};add("Accessoires et points singuliers","acc",l,q,u==='ml'?'ml':'pce',u==='ml'?'ml':'pièce',q,q*(u==='ml'?2:4),0,6,'acc_'+k,a.p);}}
+ {const so=accQ(c,'solin'),ri=accQ(c,'rive'),co=accQ(c,'couv'),to=c.sys==="fpo"?g.rel:0;let ch=0,vi=0,ma=0;
+  if(so>0){ch+=ceil(so*100/P.espSolin)+ceil(so/3);ma+=so/8;}
+  if(ri>0)vi+=ceil(ri*100/P.espRive)+ceil(ri/2);
+  if(to>0)vi+=ceil(to*100/P.espTole)+ceil(to/2);
+  if(co>0){const pa=ceil(co*100/P.espPatte)+ceil(co/3),ec=ceil(co/3);ch+=pa*2;ma+=ec/4;
+   add("Fixations","acc",`Pattes de couvertine (1 tous les ${nf(P.espPatte)} cm + 1 par longueur)`,pa,"pce","pièce",pa,pa*0.2,0,6,"patte");
+   add("Fixations","acc","Éclisses de jonction de couvertine",ec,"pce","pièce",ec,ec*0.3,0,6,"ecl");}
+  if(ch>0)add("Fixations","acc",`Chevilles à frapper 6 × 40 (tape-vis)${so>0?` · solin 1 tous les ${nf(P.espSolin)} cm`:''}${co>0?' · 2 par patte':''}`,ch,"pce","boîte 100",ceil(ch/100),ceil(ch/100)*0.6,0,6,"chev");
+  if(vi>0)add("Fixations","acc",`Vis inox 4,8 + rondelle EPDM${ri>0?` · rive 1 tous les ${nf(P.espRive)} cm`:''}${to>0?` · tôle colaminée 1 tous les ${nf(P.espTole)} cm`:''}`,vi,"pce","boîte 100",ceil(vi/100),ceil(vi/100)*0.5,0,6,"visx");
+  if(ma>0){const n=Math.max(1,ceil(ma));add("Fixations","acc","Mastic PU / MS (joint de solin, jonctions)",n,"cartouche","cartouche 310 ml",n,n*0.45,0,6,"mastic");}}
  if(isRoof&&c.prot!=="aucune"){const m=A*rec;add("Protection","geo","Géotextile 300 g/m²",m,"m²","rouleau "+P.geoRoul+" m²",ceil(m/P.geoRoul),ceil(m/P.geoRoul)*30,0,7,"geo");}
  if(isRoof&&c.prot==="gravier"){const t=A*P.gravEp/100*P.gravDens;add("Protection","prot","Gravier roulé 16/32",t,"t","big bag 1 t",ceil(t),ceil(t)*1000,1,8,"grav");}
  if(isRoof&&c.prot==="dalles"){const n=ceil(A*P.dalM2*1.03),p=ceil(A*P.plotsM2);add("Protection","prot","Dalles béton 50 × 50",n,"pce","dalle",n,n*P.dalKg,P.dalPal,8,"dal");add("Protection","acc","Plots réglables",p,"pce","carton 50",ceil(p/50),ceil(p/50)*12,0,8,"plots");}
@@ -202,8 +283,10 @@ function tasks(c){
  if(c.sys!=="resine"&&(hasIso||c.sys==="bitume"))t("prim","Primaire d'accrochage",(A+g.rel*g.dev)/pr.prim,"Au rouleau, relevés compris. Laisser sécher avant soudure.");
  if(c.sys==="resine")t("prim","Primaire résine",(A+g.rel*g.dev)/pr.prim,"Support sec et propre ; respecter la température minimale du fabricant.");
  if(hasIso)t("pv","Pare-vapeur",A/pr.pv,"Lés soudés en plein, remontés en périphérie au-dessus de l'isolation.");
+ if(hasIso&&taper(c).on)t("isoP","Isolation pentée (éléments de pente)",A/pr.isoP,"Poser les éléments selon le plan de calepinage du fabricant, en partant des naissances ; caniveaux tracés au cordeau.");
  if(hasIso)t("iso","Isolation",A/pr.iso,"Joints décalés, panneaux serrés, sans lacune. Ne poser que ce qui sera couvert le jour même.");
- if(isRoof&&c.evac>0)t("evac","Évacuations et trop-plein",c.evac*pr.evac+(1),"Poser les naissances avant les lés : la membrane vient se raccorder dessus.");
+ {const h=ACC.reduce((s,[k])=>s+accQ(c,k)*((P.acc[k]||{}).h||0),0);t("accs","Accessoires et points singuliers",h,"Trop-pleins, cols de cygne, ventilations, lanterneaux, ancrages, joints et rives : raccordés en continuité avec l'étanchéité, angles renforcés.");}
+ if(isRoof&&c.evac>0)t("evac","Naissances d'eaux pluviales",c.evac*pr.evac,"Poser les naissances avant les lés : la membrane vient se raccorder dessus.");
  if(c.sys==="bitume"){t("b1","1re couche bitume",A/pr.b1,"Lés du point bas vers le point haut, recouvrements dans le sens de l'eau.");t("b2","Couche de surface ardoisée",A/pr.b2,"Décaler les joints d'un demi-lé par rapport à la 1re couche.");}
  if(c.sys==="fpo")t("fpo","Membrane FPO",A/pr.fpo,"Souder à l'air chaud, contrôler chaque soudure à la pointe.");
  if(c.sys==="epdm")t("epdm","Membrane EPDM",A/pr.epdm,"Dérouler, laisser détendre 30 min, ajuster puis coller ou lester.");
@@ -222,7 +305,7 @@ function tasks(c){
 function plan(c){
  const T0=tasks(c),T=[...T0.filter(x=>x.k==='instal'),...T0.filter(x=>x.k==='evac'),...T0.filter(x=>x.k!=='instal'&&x.k!=='evac')],team=Math.max(1,+c.team||2),hd=Math.max(4,+c.hday||8.5),g=geo(c),days=[];let d={h:0,items:[]};
  /* Les couches qui ouvrent puis referment le toit sont faites par bandes : chaque soir, tout ce qui est ouvert est fermé. */
- const GK=c.type==="mur"?[]:["depose","support","prim","pv","iso","b1","fpo","epdm","res"];
+ const GK=c.type==="mur"?[]:["depose","support","prim","pv","isoP","iso","b1","fpo","epdm","res"];
  const grp=T.filter(x=>GK.includes(x.k)),gph=grp.reduce((s,x)=>s+x.ph,0),bands=[];
  const push=(n,h,part)=>{d.items.push({n,h,part});d.h+=h;};
  const next=()=>{days.push(d);d={h:0,items:[]};};
@@ -263,12 +346,13 @@ function cost(c){
  return{M,L,mat,mo,h,log,fg,rev,marge,ht,tva,ttc:ht+tva,jours,pl,m2:g.A?ht/g.A:0,parJour:jours?marge/jours:0,venteJour:jours?ht/jours:0};
 }
 const PMAP={benne:'depose',prim:'prep',pv:'prep',iso:'iso',b1:'etanch',b2:'etanch',gaz:'etanch',fpo:'etanch',fix:'etanch',colle:'etanch',tole:'rel',epdm:'etanch',jonc:'rel',naiss:'evac',tp:'evac',geo:'prot',grav:'prot',dal:'prot',plots:'prot',natte:'prot',sub:'prot',sedum:'prot',nmur:'prot',rprim:'etanch',res:'etanch',voile:'etanch'};
-const TMAP={instal:'instal',repli:'instal',controle:'instal',support:'instal',depose:'depose',prim:'prep',pv:'prep',iso:'iso',b1:'etanch',b2:'etanch',fpo:'etanch',epdm:'etanch',res:'etanch',rel:'rel',evac:'evac',racc:'racc',geo:'prot',grav:'prot',dal:'prot',veg:'prot'};
+const TMAP={isoP:'iso',instal:'instal',repli:'instal',controle:'instal',support:'instal',depose:'depose',prim:'prep',pv:'prep',iso:'iso',b1:'etanch',b2:'etanch',fpo:'etanch',epdm:'etanch',res:'etanch',rel:'rel',evac:'evac',racc:'racc',geo:'prot',grav:'prot',dal:'prot',veg:'prot'};
 function postes(c){
  const k=cost(c),g=geo(c),A=g.A,relA=g.rel*g.dev,P0={};const add=(id,v)=>{P0[id]=(P0[id]||0)+v;};
- for(const m of k.M){let id=/raccords/i.test(m.name)?'racc':(PMAP[m.pid]||'instal');
+ for(const m of k.M){let id=/^acc_/.test(m.pid||'')?'a_'+m.pid.slice(4):/raccords/i.test(m.name)?'racc':(PMAP[m.pid]||'instal');
   if(id==='etanch'&&relA>0&&c.type!=='mur'){const f=relA/(A+relA);add('rel',m.cost*f);add('etanch',m.cost*(1-f));}else add(id,m.cost);}
- for(const t of k.pl.T)add(TMAP[t.k]||'instal',t.ph*P.tauxH);
+ for(const t of k.pl.T){if(t.k==='accs')continue;add(TMAP[t.k]||'instal',t.ph*P.tauxH);}
+ for(const [kk] of ACC){const q=accQ(c,kk);if(q>0)add('a_'+kk,q*((P.acc[kk]||{}).h||0)*P.tauxH);}
  add('instal',k.log);
  const tot=Object.values(P0).reduce((a,b)=>a+b,0),f=tot?k.ht/tot:1;
  const sysD={bitume:"Étanchéité bicouche en lés de bitume polymère SBS : première couche EP4 et couche de finition EP5 ardoisée, soudées à la flamme, recouvrements dans le sens de l'écoulement",
@@ -280,11 +364,12 @@ function postes(c){
   ['instal',"Installation de chantier","Mise en place des protections collectives, levage et approvisionnement des matériaux, contrôle du support et des pentes, essai final, repli et nettoyage",1,'forfait'],
   ['depose',"Dépose de l'étanchéité existante","Dépose soignée de l'ancienne étanchéité, tri et évacuation des déchets en décharge agréée",A,'m²'],
   ['prep',(+c.iso&&c.type!=='mur')?"Préparation du support et pare-vapeur":"Préparation du support",(+c.iso&&c.type!=='mur'?"Nettoyage du support, enduit d'accrochage bitumineux et pare-vapeur EGV 3 soudé en plein, remonté en périphérie":"Nettoyage du support et application d'un primaire d'accrochage"),A,'m²'],
-  ['iso',"Isolation thermique",`Fourniture et pose de panneaux d'isolation PIR épaisseur ${c.iso} mm, joints décalés, sans lacune`,A,'m²'],
+  ['iso',"Isolation thermique",`Fourniture et pose de panneaux d'isolation PIR épaisseur ${c.iso} mm, joints décalés, sans lacune${(()=>{const T=taper(c);return T.on?`, et d'éléments d'isolation pentée PIR à ${nf(T.p,1)} % (épaisseur 0 à ${nf(T.cur.hMax*1000)} mm)${T.cur.k?`, avec ${T.cur.k} caniveau${T.cur.k>1?'x':''} à ${nf(T.pc,1)} % vers les naissances`:''}, selon plan de calepinage`:'';})()}`,A,'m²'],
   ['etanch',c.type==='mur'?"Étanchéité des murs enterrés":"Étanchéité en surface courante","Fourniture et pose. "+sysD[c.sys],A,'m²'],
   ['rel',"Relevés et rives",`Relevés d'étanchéité sur acrotères et murs, développé ${nf(c.dev)} cm, angles renforcés, fixation et protection en tête`,g.rel,'ml'],
   ['racc',"Raccords et points singuliers",`Raccords en résine armée sur primaire : ${[+c.seuils?`${c.seuils} seuil${c.seuils>1?'s':''} de porte-fenêtre (${nf(c.seuilMl,1)} ml)`:'',+c.trav?`${c.trav} traversée${c.trav>1?'s':''}`:'',+c.angles?`${c.angles} angle${c.angles>1?'s':''}`:''].filter(Boolean).join(', ')}, en continuité avec l'étanchéité courante`,1,'forfait'],
-  ['evac',"Évacuations des eaux pluviales",`Fourniture et pose de ${+c.evac} naissance${+c.evac>1?'s':''} avec crapaudine${+c.evac>1?'s':''} et de ${Math.max(1,ceil(c.evac/2))} trop-plein${ceil(c.evac/2)>1?'s':''} de sécurité, raccordés à l'étanchéité`,1,'forfait'],
+  ['evac',"Naissances d'eaux pluviales",`Fourniture et pose de naissances verticales avec crapaudines, raccordées à l'étanchéité`,+c.evac,'pce'],
+  ...ACC.map(([kk,l,u])=>['a_'+kk,l,'Fourniture et pose. '+ACCD[kk],accQ(c,kk),u==='ml'?'ml':'pce']),
   ['prot',c.type==='mur'?"Protection de l'étanchéité":"Couche de protection",c.type==='mur'?"Natte à excroissances fixée en tête, avant remblayage":(protD[c.prot]||''),A,'m²']];
  return L.filter(l=>(P0[l[0]]||0)>0.5).map((l,i)=>{const tot=Math.round(P0[l[0]]*f/5)*5;return{pos:(i+1)*10,id:l[0],t:l[1],d:l[2],q:l[3],u:l[4],tot,pu:l[3]?tot/l[3]:tot};});
 }
@@ -340,41 +425,1696 @@ function roofSVG(c,P1,bands){
 const LS='havret-chantiers';
 async function initDb(){
  try{db=window.claude&&window.claude.use?await window.claude.use('db'):null;}catch(_){db=null;}
- if(!db){local=true;try{list=JSON.parse(localStorage.getItem(LS)||'[]');}catch(_){list=[];}try{const p=JSON.parse(localStorage.getItem(LS+'-p')||'null');if(p)P=merge(p);}catch(_){}render();return;}
+ if(!db){local=true;try{list=JSON.parse(localStorage.getItem(LS)||'[]');}catch(_){list=[];}try{const p=JSON.parse(localStorage.getItem(LS+'-p')||'null');if(p)P=merge(p);}catch(_){}await loadCpt();await loadStores();render();setTimeout(doBackup,1500);return;}
  const t=setTimeout(()=>{$('#save').textContent='Hors ligne ?';},10000);
  db.collection('chantiers').onSnapshot(s=>{clearTimeout(t);list=s.docs.map(d=>({...d.data(),id:d.id}));if(cur){const n=list.find(x=>x.id===cur.id);if(n&&!dirty)cur=JSON.parse(JSON.stringify(n));}if(!document.activeElement||!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))render();},e=>{clearTimeout(t);$('#save').textContent='Erreur de synchro';});
+ loadCpt();loadStores();
  db.doc('config/params').onSnapshot(s=>{if(s.exists){P=merge(s.data());if(cur)render();}},()=>{});
 }
-const merge=p=>{const o={...JSON.parse(JSON.stringify(DEF)),...p,prod:{...DEF.prod,...(p.prod||{})},prix:{...DEF.prix,...(p.prix||{})},ent:{...DEF.ent,...(p.ent||{})}};if(p.prixVer!==DEF.prixVer){o.prix={...DEF.prix};for(const k of ['primaire','bidonPrim','b1Roul','b1Kg','b1Pal','b2Roul','b2Kg','b2Pal','resSeau','voileRoul'])o[k]=DEF[k];o.tauxH=DEF.tauxH;o.fg=DEF.fg;o.marge=DEF.marge;o.prod={...o.prod,b1:DEF.prod.b1,b2:DEF.prod.b2};o.prixVer=DEF.prixVer;}return o;};
+const merge=p=>{const o={...JSON.parse(JSON.stringify(DEF)),...p,prod:{...DEF.prod,...(p.prod||{})},prix:{...DEF.prix,...(p.prix||{})},ent:{...DEF.ent,...(p.ent||{})},cpt:{...DEF.cpt,...(p.cpt||{})},acc:Object.fromEntries(Object.entries(DEF.acc).map(([k,v])=>[k,{...v,...((p.acc||{})[k]||{})}]))};if(p.prixVer!==DEF.prixVer){o.prix={...DEF.prix};for(const k of ['primaire','bidonPrim','b1Roul','b1Kg','b1Pal','b2Roul','b2Kg','b2Pal','resSeau','voileRoul'])o[k]=DEF[k];o.tauxH=DEF.tauxH;o.fg=DEF.fg;o.marge=DEF.marge;o.prod={...o.prod,b1:DEF.prod.b1,b2:DEF.prod.b2};o.prixVer=DEF.prixVer;}return o;};
 let saving=Promise.resolve();
 function persist(){
  if(!cur)return;cur.updated=Date.now();const c=JSON.parse(JSON.stringify(cur));
  const i=list.findIndex(x=>x.id===c.id);if(i<0)list.unshift(c);else list[i]=c;
- if(local){try{localStorage.setItem(LS,JSON.stringify(list));$('#save').textContent='✓';}catch(_){$('#save').textContent='Non enregistré';}return;}
+ if(local){try{lsSet(LS,JSON.stringify(list));$('#save').textContent='✓';}catch(_){$('#save').textContent='Non enregistré';}return;}
  $('#save').textContent='…';
  saving=saving.then(()=>db.doc('chantiers/'+c.id).set(c)).then(()=>{$('#save').textContent='✓';dirty=null;},e=>{$('#save').textContent=e&&e.code==='quota_exceeded'?'Stockage plein':'Non enregistré';});
 }
 let tmr=null;const queue=()=>{dirty=1;clearTimeout(tmr);tmr=setTimeout(persist,700);};
-async function delChantier(id){list=list.filter(x=>x.id!==id);if(local){try{localStorage.setItem(LS,JSON.stringify(list));}catch(_){}}else{try{await db.doc('chantiers/'+id).delete();}catch(_){}}cur=null;render();}
-async function saveParams(){if(local){try{localStorage.setItem(LS+'-p',JSON.stringify(P));}catch(_){}return;}try{await db.doc('config/params').set(P);}catch(_){}}
+async function delChantier(id){list=list.filter(x=>x.id!==id);if(local){try{lsSet(LS,JSON.stringify(list));}catch(_){}}else{try{await db.doc('chantiers/'+id).delete();}catch(_){}}cur=null;render();}
+async function saveParams(){if(local){try{lsSet(LS+'-p',JSON.stringify(P));}catch(_){}return;}try{await db.doc('config/params').set(P);}catch(_){}}
+
+/* ===================== COMPTABILITÉ ===================== */
+let view='ch',cpt=[],cptYear=new Date().getFullYear(),cptPer='an',cptBusy='';
+const CATS={mat:"Matériaux",sst:"Sous-traitance",loc:"Location (grue, benne, échafaudage)",out:"Outillage et petit matériel",veh:"Véhicule et carburant",dep:"Repas et déplacements",ass:"Assurances",loy:"Loyer et dépôt",tel:"Téléphone et internet",sal:"Salaires et charges sociales",adm:"Administration et fiduciaire",ban:"Frais bancaires",pub:"Publicité et site internet",div:"Divers"};
+const RCATS={trav:"Travaux facturés",div:"Autre recette"};
+const LSC=()=>LS+'-cpt';
+async function loadCpt(){if(local){try{cpt=JSON.parse(localStorage.getItem(LSC())||'[]');}catch(_){cpt=[];}return;}
+ db.collection('compta').onSnapshot(s=>{cpt=s.docs.map(d=>({...d.data(),id:d.id}));if(!cur&&view==='cpt'&&!document.querySelector('dialog[open]'))render();},()=>{});}
+async function saveCpt(e){e.updated=Date.now();const i=cpt.findIndex(x=>x.id===e.id);if(i<0)cpt.unshift(e);else cpt[i]=e;
+ if(local){try{lsSet(LSC(),JSON.stringify(cpt));}catch(_){alertBox("Mémoire du téléphone pleine : exportez et archivez vos écritures.");}return;}
+ try{await db.doc('compta/'+e.id).set(e);}catch(_){}}
+async function delCpt(id){cpt=cpt.filter(x=>x.id!==id);if(local){try{lsSet(LSC(),JSON.stringify(cpt));}catch(_){}}else{try{await db.doc('compta/'+id).delete();}catch(_){}}}
+const alertBox=t=>{const d=$('#dlg');d.innerHTML=`<p>${t}</p><div style="text-align:right;margin-top:14px"><button class="btn sm" type="button" id="aok">OK</button></div>`;d.showModal();$('#aok').onclick=()=>d.close();};
+const tvaOf=(ttc,t)=>Math.round(ttc*t/(100+t)*100)/100;
+const inPer=(d)=>{if(!d)return false;const y=+d.slice(0,4),m=+d.slice(5,7);if(y!==cptYear)return false;if(cptPer==='an')return true;if(cptPer[0]==='T')return Math.ceil(m/3)===+cptPer[1];if(cptPer[0]==='S')return (m<=6?1:2)===+cptPer[1];return true;};
+function factures(){return list.filter(c=>c.factNo).map(c=>{const PO=docLines(c,true),ht=PO.reduce((s,p)=>s+p.tot,0),tva=ht*P.tva/100;const d=new Date((c.factDate||today())+'T12:00');d.setDate(d.getDate()+(+P.ent.jours||30));const ech=d.toISOString().slice(0,10);const late=!c.factPaid&&ech<today();return{c,no:c.factNo,date:c.factDate,ech,ht,tva,ttc:ht+tva,acc:+c.acompteRecu||0,paid:!!c.factPaid,paidDate:c.factPaidDate||'',late};});}
+function totals(){const F=factures();let rec={ht:0,tva:0,ttc:0},dep={ht:0,tva:0,ttc:0};const cats={};
+ for(const f of F)if(f.paid&&inPer(f.paidDate)){rec.ttc+=f.ttc;rec.tva+=f.tva;rec.ht+=f.ht;}
+ for(const e of cpt){if(!inPer(e.date))continue;const t=+e.ttc||0,v=+e.tva||0;if(e.kind==='rec'){rec.ttc+=t;rec.tva+=v;rec.ht+=t-v;}else{dep.ttc+=t;dep.tva+=v;dep.ht+=t-v;cats[e.cat]=(cats[e.cat]||0)+(t-v);}}
+ const C=P.cpt,due=!C.assuj?0:C.meth==='tdfn'?rec.ttc*(+C.tdfn||0)/100:rec.tva-dep.tva;
+ const yrCA=F.filter(f=>f.paid&&(f.paidDate||'').startsWith(String(cptYear))).reduce((s,f)=>s+f.ht,0)+cpt.filter(e=>e.kind==='rec'&&(e.date||'').startsWith(String(cptYear))).reduce((s,e)=>s+(+e.ttc||0)-(+e.tva||0),0);
+ return{F,rec,dep,cats,due,res:rec.ht-dep.ht,yrCA};}
+function renderCompta(){
+ const T=totals(),C=P.cpt,years=[...new Set([cptYear,new Date().getFullYear(),...cpt.map(e=>+(e.date||'').slice(0,4)).filter(Boolean)])].sort((a,b)=>b-a);
+ const E=cpt.filter(e=>inPer(e.date)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ const maxC=Math.max(1,...Object.values(T.cats));
+ app.innerHTML=navTop()+`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px"><h1>Comptabilité</h1>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><select class="t" id="cy" style="width:auto">${years.map(y=>`<option ${y===cptYear?'selected':''}>${y}</option>`).join('')}</select><select class="t" id="cp" style="width:auto">${Object.entries({an:'Année',S1:'1er semestre',S2:'2e semestre',T1:'T1',T2:'T2',T3:'T3',T4:'T4'}).map(([k,v])=>`<option value="${k}" ${k===cptPer?'selected':''}>${v}</option>`).join('')}</select></div></div>
+ <div class="kpi" style="margin-top:12px"><div><span>Recettes HT</span><b>${chf(T.rec.ht)}</b></div><div><span>Dépenses HT</span><b>${chf(T.dep.ht)}</b></div><div style="background:${T.res>=0?'var(--ok)':'var(--acc)'}"><span>Résultat</span><b>${chf(T.res)}</b></div>${C.assuj?`<div><span>${T.due<0?'TVA à récupérer':'TVA à payer'}${C.meth==='tdfn'?' (TDFN)':''}</span><b>${chf(Math.abs(T.due))}</b></div>`:''}</div>
+ ${!C.assuj&&T.yrCA>90000?`<div class="warn">Chiffre d'affaires ${cptYear} : ${chf(T.yrCA)}. L'assujettissement à la TVA devient obligatoire à partir de CHF 100'000 par an : à vérifier avec ta fiduciaire.</div>`:''}
+ ${C.assuj&&C.meth==='tdfn'&&!C.tdfn?`<div class="warn">Méthode TDFN choisie : indique dans ⚙ → Comptabilité le taux attribué par l'AFC.</div>`:''}
+ <div class="card sec"><h2>Ajouter</h2><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+ <label class="btn sm filebtn">Scanner un ticket / une facture<input type="file" accept="image/*" capture="environment" data-scan="1"></label>
+ <label class="btn gh sm filebtn">Depuis la galerie<input type="file" accept="image/*" multiple data-scan="1"></label>
+ <button class="btn gh sm" type="button" id="adddep">Dépense à la main</button><button class="btn gh sm" type="button" id="addrec">Recette à la main</button></div>
+ <p class="note" id="scanst">${cptBusy}</p><p class="note">Conserve les originaux (papier ou photo) : les pièces comptables se gardent 10 ans.</p></div>
+ <div class="card sec"><h2>Factures clients</h2>${T.F.length?`<table style="margin-top:8px"><tbody>${T.F.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(f=>`<tr><td><b>${f.no}</b> · ${esc(f.c.client||f.c.nom||'')}<br><small style="color:${f.paid?'var(--ok)':f.late?'var(--accd)':'var(--mut)'}">${f.paid?'Payée le '+fd(f.paidDate):f.late?'En retard · échéance '+fd(f.ech):'Échéance '+fd(f.ech)}</small></td><td class="r">${chf(f.ttc)}<br>${f.paid?`<button class="btn gh sm" type="button" data-unpaid="${f.c.id}" style="min-height:32px;margin-top:4px">Annuler</button>`:`<button class="btn sm" type="button" data-paid="${f.c.id}" style="min-height:32px;margin-top:4px">Payée</button>${f.late?` <button class="btn gh sm" type="button" data-rel="${f.c.id}" style="min-height:32px;margin-top:4px">Relancer</button>`:''}`}</td></tr>`).join('')}</tbody></table>`:'<p class="note">Les factures créées dans tes chantiers (onglet Devis / Facture) apparaissent ici. Marque-les payées pour qu\'elles comptent dans les recettes.</p>'}</div>
+ <div class="card sec"><h2>Dépenses par catégorie</h2>${Object.keys(T.cats).length?`<div class="bars" style="margin-top:10px">${Object.entries(T.cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${CATS[k]||k}</span><i style="width:${Math.max(2,v/maxC*100)}%"></i><span class="r">${nf(v)}</span></div>`).join('')}</div>`:'<p class="note">Aucune dépense sur la période.</p>'}</div>
+ ${C.assuj?`<div class="card sec"><h2>Décompte TVA</h2><table style="margin-top:8px"><tbody>
+ <tr><td>Chiffre d'affaires TTC encaissé</td><td class="r">${chf(T.rec.ttc)}</td></tr>
+ ${C.meth==='tdfn'?`<tr><td>TVA due au taux de la dette fiscale nette ${nf(+C.tdfn||0,1)} %</td><td class="r">${chf(T.due)}</td></tr>`:`<tr><td>TVA sur le chiffre d'affaires</td><td class="r">${chf(T.rec.tva)}</td></tr><tr><td>Impôt préalable (TVA sur dépenses)</td><td class="r">– ${chf(T.dep.tva)}</td></tr><tr class="cat"><td>${T.due<0?'TVA à récupérer auprès de l\'AFC':'TVA à payer à l\'AFC'}</td><td class="r">${chf(Math.abs(T.due))}</td></tr>`}
+ </tbody></table><p class="note">Méthode ${C.meth==='tdfn'?'des taux de la dette fiscale nette':'effective'}, selon les contre-prestations reçues (factures payées). À reporter dans ton décompte AFC et à faire contrôler par ta fiduciaire.</p></div>`:''}
+ <div class="card sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2>Écritures (${E.length})</h2><button class="btn gh sm" type="button" id="csv">${window.Android?'Exporter (CSV)':'Copier en CSV'}</button></div>
+ ${E.length?`<table style="margin-top:8px"><tbody>${E.map(e=>`<tr data-edit="${e.id}" style="cursor:pointer${e.check?';background:light-dark(#fff3ee,#2a1a14)':''}"><td>${fd(e.date)}${e.check?' <span class="st encours">à vérifier</span>':''}<br><b>${esc(e.tiers||'—')}</b><br><small style="color:var(--mut)">${e.kind==='rec'?RCATS[e.cat]||'Recette':CATS[e.cat]||''}${e.chantier?' · '+esc((list.find(c=>c.id===e.chantier)||{}).nom||''):''}${e.pay==='a_payer'?' · à payer':''}</small></td><td class="r" style="color:${e.kind==='rec'?'var(--ok)':'inherit'}">${e.kind==='rec'?'+':'–'} ${nf(+e.ttc||0,2)}<br><small style="color:var(--mut)">TVA ${nf(+e.tva||0,2)}</small></td></tr>`).join('')}</tbody></table>`:'<p class="note">Aucune écriture sur la période.</p>'}</div>
+ <p class="note" style="margin-top:14px">Cet outil tient une comptabilité des recettes et des dépenses. Il ne remplace pas ta fiduciaire pour le bilan, les impôts et les décomptes officiels.</p>`;
+ bindNav();
+ $('#cy').onchange=e=>{cptYear=+e.target.value;render();};$('#cp').onchange=e=>{cptPer=e.target.value;render();};
+ $('#adddep').onclick=()=>editCpt({id:'e'+Date.now().toString(36),kind:'dep',date:today(),cat:'mat',taux:8.1,pay:'paye',moyen:'carte'});
+ $('#addrec').onclick=()=>editCpt({id:'e'+Date.now().toString(36),kind:'rec',date:today(),cat:'div',taux:8.1,pay:'paye',moyen:'virement'});
+ $('#csv').onclick=exportCsv;
+ app.querySelectorAll('[data-edit]').forEach(r=>r.onclick=()=>editCpt(JSON.parse(JSON.stringify(cpt.find(x=>x.id===r.dataset.edit)))));
+ app.querySelectorAll('[data-paid]').forEach(b=>b.onclick=()=>setPaid(b.dataset.paid,true));
+ app.querySelectorAll('[data-unpaid]').forEach(b=>b.onclick=()=>setPaid(b.dataset.unpaid,false));
+ app.querySelectorAll('[data-rel]').forEach(b=>b.onclick=()=>relance(b.dataset.rel));
+ app.querySelectorAll('[data-scan]').forEach(i=>i.onchange=()=>{if(i.files.length)scanReceipts([...i.files]);});
+}
+function setPaid(id,v){const c=list.find(x=>x.id===id);if(!c)return;const keep=cur;cur=JSON.parse(JSON.stringify(c));cur.factPaid=v;cur.factPaidDate=v?today():'';persist();cur=keep;render();}
+function relance(id){const c=list.find(x=>x.id===id);const f=factures().find(x=>x.c.id===id);if(!c||!f)return;const E=P.ent;
+ const t=`Madame, Monsieur,\n\nSauf erreur de notre part, notre facture ${f.no} du ${fd(f.date)}, d'un montant de CHF ${nf(f.ttc-f.acc,2)}, arrivée à échéance le ${fd(f.ech)}, reste impayée à ce jour.\n\nNous vous remercions de bien vouloir procéder au règlement dans les 10 jours${E.iban?` sur le compte IBAN ${E.iban}`:''}, en mentionnant la référence ${f.no}. Si votre paiement a croisé ce message, merci de ne pas en tenir compte.\n\nAvec nos meilleures salutations,\n${E.nom}${E.tel?'\n'+E.tel:''}`;
+ if(window.Android&&window.Android.share)window.Android.share(t);else navigator.clipboard.writeText(t).then(()=>alertBox('Texte de relance copié.'),()=>alertBox(esc(t).replace(/\n/g,'<br>')));}
+function exportCsv(){const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+ const rows=[['Date','Type','Tiers','N° pièce','Catégorie','Chantier','HT','TVA','Taux','TTC','Statut','Moyen','Description']];
+ for(const f of factures())if(f.paid&&inPer(f.paidDate))rows.push([f.paidDate,'Recette',f.c.client||'',f.no,'Travaux facturés',f.c.nom||'',f.ht.toFixed(2),f.tva.toFixed(2),P.tva,f.ttc.toFixed(2),'Payée','virement','']);
+ for(const e of cpt.filter(e=>inPer(e.date)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')))rows.push([e.date,e.kind==='rec'?'Recette':'Dépense',e.tiers,e.num,e.kind==='rec'?RCATS[e.cat]:CATS[e.cat],(list.find(c=>c.id===e.chantier)||{}).nom||'',((+e.ttc||0)-(+e.tva||0)).toFixed(2),(+e.tva||0).toFixed(2),e.taux,(+e.ttc||0).toFixed(2),e.pay==='a_payer'?'À payer':'Payé',e.moyen,e.desc]);
+ const t=rows.map(r=>r.map(q).join(';')).join('\n');
+ if(window.Android&&window.Android.share)window.Android.share(t);else navigator.clipboard.writeText(t).then(()=>alertBox('Écritures copiées : colle-les dans Excel ou envoie-les à ta fiduciaire.'),()=>alertBox('Copie impossible ici.'));}
+function editCpt(e){const d=$('#dlg'),isR=e.kind==='rec';
+ const opt=(o,v)=>Object.entries(o).map(([k,n])=>`<option value="${k}" ${String(v)===String(k)?'selected':''}>${n}</option>`).join('');
+ d.innerHTML=`<h2>${isR?'Recette':'Dépense'}</h2>${e.check?'<div class="warn">Lu automatiquement : vérifie les montants avant d\'enregistrer.</div>':''}<div class="g2" style="margin-top:12px">
+ <label class="f">Date<input class="t" type="date" id="e_date" value="${esc(e.date||'')}"></label>
+ <label class="f">${isR?'Client / payeur':'Fournisseur'}<input class="t" id="e_tiers" value="${esc(e.tiers||'')}"></label>
+ <label class="f">N° de pièce<input class="t" id="e_num" value="${esc(e.num||'')}"></label>
+ <label class="f">Catégorie<select class="t" id="e_cat">${opt(isR?RCATS:CATS,e.cat)}</select></label>
+ <label class="f">Chantier<select class="t" id="e_ch"><option value="">— aucun —</option>${list.map(c=>`<option value="${c.id}" ${e.chantier===c.id?'selected':''}>${esc(c.nom||'Sans nom')}</option>`).join('')}</select></label>
+ <label class="f">Montant TTC (CHF)<input class="t n" type="number" step="0.05" min="0" id="e_ttc" value="${e.ttc??''}"></label>
+ <label class="f">Taux TVA<select class="t" id="e_taux">${[8.1,2.6,3.8,0].map(t=>`<option value="${t}" ${+e.taux===t?'selected':''}>${t?nf(t,1)+' %':'Sans TVA'}</option>`).join('')}</select></label>
+ <label class="f">TVA (CHF)<input class="t n" type="number" step="0.01" min="0" id="e_tva" value="${e.tva??''}"></label>
+ <label class="f">Statut<select class="t" id="e_pay">${opt({paye:'Payé',a_payer:'À payer'},e.pay)}</select></label>
+ <label class="f">Moyen<select class="t" id="e_moy">${opt({carte:'Carte',especes:'Espèces',twint:'TWINT',virement:'Virement',facture:'Sur facture'},e.moyen)}</select></label></div>
+ <label class="f" style="margin-top:12px">Description<input class="t" id="e_desc" value="${esc(e.desc||'')}"></label>
+ <div style="display:flex;gap:10px;justify-content:space-between;margin-top:16px;flex-wrap:wrap">${cpt.some(x=>x.id===e.id)?'<button class="btn gh sm" type="button" id="e_del" style="color:var(--accd)">Supprimer</button>':'<span></span>'}<span style="display:flex;gap:10px"><button class="btn gh sm" type="button" id="e_no">Annuler</button><button class="btn sm" type="button" id="e_ok">Enregistrer</button></span></div>`;
+ d.showModal();
+ const rec=()=>{const t=+$('#e_ttc').value||0,r=+$('#e_taux').value;$('#e_tva').value=tvaOf(t,r);};
+ $('#e_ttc').oninput=rec;$('#e_taux').onchange=rec;
+ $('#e_no').onclick=()=>d.close();
+ if($('#e_del'))$('#e_del').onclick=async()=>{await delCpt(e.id);d.close();render();};
+ $('#e_ok').onclick=async()=>{Object.assign(e,{date:$('#e_date').value,tiers:$('#e_tiers').value.trim(),num:$('#e_num').value.trim(),cat:$('#e_cat').value,chantier:$('#e_ch').value,ttc:+$('#e_ttc').value||0,taux:+$('#e_taux').value,tva:+$('#e_tva').value||0,pay:$('#e_pay').value,moyen:$('#e_moy').value,desc:$('#e_desc').value.trim(),check:false});await saveCpt(e);d.close();render();};
+}
+async function scanReceipts(files){
+ const st=t=>{cptBusy=t;const el=$('#scanst');if(el)el.innerHTML=t;};
+ if(!await getSample()){st("La lecture automatique n'est pas disponible ici"+(window.Android?' : ajoute ta clé API dans ⚙.':'.')+" Saisis la dépense à la main.");return;}
+ let ok=0,ko=0;
+ for(let i=0;i<files.length;i++){st(`<span class="spin"></span>Lecture du document ${i+1} sur ${files.length}…`);
+  let b;try{b=await shrink(files[i]);}catch(_){b=files[i];}
+  const prompt=`Tu es comptable pour une entreprise suisse d'étanchéité (${esc(P.ent.nom)}). Lis ce ticket de caisse ou cette facture et réponds UNIQUEMENT avec un objet JSON valide :
+{"type":"depense|recette","date":"AAAA-MM-JJ","tiers":"nom du fournisseur ou du client","numero":"n° de facture ou de ticket","description":"ce qui a été acheté, en quelques mots","total_ttc":nombre,"tva":nombre,"taux_tva":8.1|2.6|3.8|0,"categorie":"${Object.keys(CATS).join('|')}","moyen":"carte|especes|twint|virement|facture","a_payer":true|false,"lisible":true|false}
+Règles : "type" = recette seulement si le document est une facture émise par ${esc(P.ent.nom)} ; sinon depense. "total_ttc" = total payé en CHF. "tva" = montant total de TVA indiqué (somme si plusieurs taux) ; si absent, calcule-le d'après le taux. "taux_tva" = taux principal. "a_payer" = vrai pour une facture avec bulletin ou échéance non encore payée. Catégories : mat matériaux, sst sous-traitance, loc location, out outillage, veh véhicule et carburant, dep repas et déplacements, ass assurances, loy loyer, tel téléphone, sal salaires, adm administration, ban frais bancaires, pub publicité, div divers. Si un montant est illisible, mets null et "lisible":false.`;
+  try{const r=await sample.json(prompt,{images:[b],modelTier:'complex'});
+   const taux=[8.1,2.6,3.8,0].includes(+r.taux_tva)?+r.taux_tva:8.1,ttc=+r.total_ttc||0;
+   await saveCpt({id:'e'+Date.now().toString(36)+i,kind:r.type==='recette'?'rec':'dep',date:/^\d{4}-\d{2}-\d{2}$/.test(r.date||'')?r.date:today(),tiers:String(r.tiers||'').slice(0,80),num:String(r.numero||'').slice(0,40),desc:String(r.description||'').slice(0,160),cat:r.type==='recette'?'div':(CATS[r.categorie]?r.categorie:'div'),ttc,taux,tva:r.tva!=null&&+r.tva>=0?Math.round(+r.tva*100)/100:tvaOf(ttc,taux),pay:r.a_payer?'a_payer':'paye',moyen:['carte','especes','twint','virement','facture'].includes(r.moyen)?r.moyen:'carte',check:true});ok++;
+  }catch(e){ko++;}}
+ st(`${ok} document${ok>1?'s':''} lu${ok>1?'s':''}${ko?`, ${ko} illisible${ko>1?'s':''} (à saisir à la main)`:''}. Vérifie les lignes marquées « à vérifier ».`);render();
+}
+const navTop=()=>`<div class="seg nav" role="group" aria-label="Section" style="margin-top:0">${[['ch','Chantiers'],['ag','Agenda'],['cli','Clients'],['cpt','Compta'],['stk','Stock']].map(([k,l])=>`<button type="button" data-view="${k}" class="${view===k?'on':''}">${l}</button>`).join('')}</div>`;
+const bindNav=()=>app.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render();window.scrollTo(0,0);});
+
+/* QR Code generator: Copyright (c) 2009 Kazuhiko Arase, MIT license (http://www.d-project.com/) */
+var QRLib=(function(){var M={};function req(n){n=n.replace(/^\.\//,"").replace(/\.js$/,"");if(n==="index"||n===".")n="index";var m=M[n];if(!m.done){m.done=1;m.fn(m.mod,m.mod.exports);}return m.mod.exports;}
+M["QR8bitByte"]={mod:{exports:{}},fn:function(module,exports){var QRMode = req("QRMode");
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+}};
+M["QRBitBuffer"]={mod:{exports:{}},fn:function(module,exports){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+}};
+M["QRErrorCorrectLevel"]={mod:{exports:{}},fn:function(module,exports){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+}};
+M["QRMaskPattern"]={mod:{exports:{}},fn:function(module,exports){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+}};
+M["QRMath"]={mod:{exports:{}},fn:function(module,exports){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+}};
+M["QRMode"]={mod:{exports:{}},fn:function(module,exports){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+}};
+M["QRPolynomial"]={mod:{exports:{}},fn:function(module,exports){var QRMath = req("QRMath");
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+}};
+M["QRRSBlock"]={mod:{exports:{}},fn:function(module,exports){var QRErrorCorrectLevel = req("QRErrorCorrectLevel");
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+}};
+M["QRUtil"]={mod:{exports:{}},fn:function(module,exports){var QRMode = req("QRMode");
+var QRPolynomial = req("QRPolynomial");
+var QRMath = req("QRMath");
+var QRMaskPattern = req("QRMaskPattern");
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+}};
+M["index"]={mod:{exports:{}},fn:function(module,exports){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = req("QR8bitByte");
+var QRUtil = req("QRUtil");
+var QRPolynomial = req("QRPolynomial");
+var QRRSBlock = req("QRRSBlock");
+var QRBitBuffer = req("QRBitBuffer");
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+}};
+var Q=req("index");Q.ECL=req("QRErrorCorrectLevel");return Q;})();
+
+/* ===================== MODULES ENTREPRISE ===================== */
+/* Stores génériques : équipe, clients, stock, photos */
+function mkStore(name){return{name,list:[],
+ async load(cb){if(local){try{this.list=JSON.parse(localStorage.getItem(LS+'-'+name)||'[]');}catch(_){this.list=[];}return;}
+  db.collection(name).onSnapshot(s=>{this.list=s.docs.map(d=>({...d.data(),id:d.id}));cb&&cb();},()=>{});},
+ async save(e){e.updated=Date.now();const i=this.list.findIndex(x=>x.id===e.id);if(i<0)this.list.push(e);else this.list[i]=e;
+  if(local){try{lsSet(LS+'-'+name,JSON.stringify(this.list));}catch(_){alertBox("Mémoire pleine : supprime d'anciennes photos ou exporte tes données.");}return;}
+  try{await db.doc(name+'/'+e.id).set(e);}catch(err){if(err&&err.code==='quota_exceeded')alertBox('Stockage plein.');}},
+ async del(id){this.list=this.list.filter(x=>x.id!==id);if(local){try{lsSet(LS+'-'+name,JSON.stringify(this.list));}catch(_){}}else{try{await db.doc(name+'/'+id).delete();}catch(_){}}}};}
+const OUV=mkStore('ouvriers'),CLI=mkStore('clients'),STK=mkStore('stock'),PH=mkStore('photos');
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const rerender=()=>{if(!document.querySelector('dialog[open]')&&!(document.activeElement&&['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)))render();};
+async function loadStores(){for(const S of [OUV,CLI,STK,PH])await S.load(rerender);}
+const thumb=(file,max=640,q=.6)=>new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(u);res(cv.toDataURL('image/jpeg',q));};img.onerror=()=>{URL.revokeObjectURL(u);rej();};img.src=u;});
+const shareOrCopy=(t,msg='Texte copié.')=>{if(window.Android&&window.Android.share)window.Android.share(t);else navigator.clipboard.writeText(t).then(()=>alertBox(msg),()=>alertBox(esc(t).replace(/\n/g,'<br>')));};
+
+/* Signature sur écran */
+function sigPad(cv){const x=cv.getContext('2d');x.lineWidth=2.2;x.lineCap='round';x.strokeStyle='#111';let on=false,used=false;
+ const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+ cv.onpointerdown=e=>{on=true;used=true;cv.setPointerCapture(e.pointerId);const[a,b]=pt(e);x.beginPath();x.moveTo(a,b);};
+ cv.onpointermove=e=>{if(!on)return;const[a,b]=pt(e);x.lineTo(a,b);x.stroke();};
+ cv.onpointerup=cv.onpointercancel=()=>{on=false;};
+ return{clear(){x.clearRect(0,0,cv.width,cv.height);used=false;},data(){return used?cv.toDataURL('image/png'):'';}};}
+const sigHTML=id=>`<div style="margin-top:10px"><div class="slab" style="font-size:13px;color:var(--mut)">Signature du client (au doigt)</div><canvas id="${id}" width="600" height="200" style="width:100%;height:120px;border:1.5px dashed var(--line);border-radius:10px;background:#fff;touch-action:none"></canvas><button class="btn gh sm" type="button" id="${id}x" style="min-height:34px">Effacer la signature</button></div>`;
+
+/* ---------- QR-facture suisse ---------- */
+const ibanClean=s=>String(s||'').replace(/\s+/g,'').toUpperCase();
+function ibanOk(s){s=ibanClean(s);if(!/^(CH|LI)\d{7}[0-9A-Z]{12}$/.test(s))return false;const r=(s.slice(4)+s.slice(0,4)).replace(/[A-Z]/g,c=>c.charCodeAt(0)-55);let m=0;for(const d of r)m=(m*10+ +d)%97;return m===1;}
+const isQRIBAN=s=>{const iid=+ibanClean(s).slice(4,9);return iid>=30000&&iid<=31999;};
+function mod10(n){const T=[0,9,4,6,8,2,7,1,3,5];let c=0;for(const d of n)c=T[(c+ +d)%10];return String((10-c)%10);}
+const qrrRef=no=>{const d=(String(no).replace(/\D/g,'')||'1').padStart(26,'0').slice(-26);return d+mod10(d);};
+function splitAdr(line,townLine){let street='',nr='',zip='',town='';const parts=String(line||'').split(/,|\n/).map(x=>x.trim()).filter(Boolean);
+ let a=parts[0]||'',b=townLine!=null?townLine:(parts[1]||'');const m=a.match(/^(.*?)[\s,]+(\d+[a-zA-Z]?)$/);if(m){street=m[1];nr=m[2];}else street=a;
+ const z=String(b).match(/(\d{4})\s+(.+)/);if(z){zip=z[1];town=z[2];}return{street,nr,zip,town};}
+function swissQR(c,amount,ref){const E=P.ent,cr=splitAdr(E.adr,E.npa),db0=splitAdr(c.adresse);const iban=ibanClean(E.iban),qrr=isQRIBAN(iban);
+ const debt=c.client&&db0.zip?['S',c.client.slice(0,70),db0.street.slice(0,70),db0.nr.slice(0,16),db0.zip,db0.town.slice(0,35),'CH']:['','','','','','',''];
+ const L=['SPC','0200','1',iban,'S',String(E.nom).slice(0,70),cr.street.slice(0,70),cr.nr.slice(0,16),cr.zip,cr.town.slice(0,35),'CH','','','','','','','',amount>0?amount.toFixed(2):'','CHF',...debt,qrr?'QRR':'NON',qrr?qrrRef(ref):'',('Facture '+ref).slice(0,140),'EPD'];
+ return{text:L.join('\n'),qrr,ref:qrr?qrrRef(ref):'',cr,debt,iban};}
+function qrSVG(text){const q=new QRLib(-1,QRLib.ECL.M);q.addData(unescape(encodeURIComponent(text)));q.make();const n=q.getModuleCount();let p='';
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))p+=`M${c} ${r}h1v1h-1z`;
+ const cs=n*7/46,o=(n-cs)/2;
+ return `<svg viewBox="0 0 ${n} ${n}" width="46mm" height="46mm" shape-rendering="crispEdges" style="display:block"><rect width="${n}" height="${n}" fill="#fff"/><path d="${p}" fill="#000"/><rect x="${o}" y="${o}" width="${cs}" height="${cs}" fill="#fff"/><rect x="${o+cs*0.08}" y="${o+cs*0.08}" width="${cs*0.84}" height="${cs*0.84}" fill="#000"/><rect x="${o+cs*0.42}" y="${o+cs*0.22}" width="${cs*0.16}" height="${cs*0.56}" fill="#fff"/><rect x="${o+cs*0.22}" y="${o+cs*0.42}" width="${cs*0.56}" height="${cs*0.16}" fill="#fff"/></svg>`;}
+const fmtIban=s=>ibanClean(s).replace(/(.{4})/g,'$1 ').trim();
+const fmtRef=r=>r?r.replace(/^(\d{2})(\d{5})(\d{5})(\d{5})(\d{5})(\d{5})$/,'$1 $2 $3 $4 $5 $6'):'';
+function qrBillHTML(c,amount,no){const E=P.ent;if(!ibanOk(E.iban))return `<div class="warn noprint">QR-facture : saisis un IBAN suisse valide dans ⚙ → Mon entreprise.</div>`;
+ if(!splitAdr(E.adr,E.npa).zip)return `<div class="warn noprint">QR-facture : complète ta rue et ton NPA / localité dans ⚙ → Mon entreprise.</div>`;
+ const Q=swissQR(c,amount,no),adr=a=>[a.street+(a.nr?' '+a.nr:''),(a.zip+' '+a.town).trim()].filter(Boolean).join('<br>');
+ const deb=Q.debt[0]?`${esc(c.client)}<br>${adr(splitAdr(c.adresse))}`:'';
+ return `<section class="qrb"><div class="qrr"><h4>Récépissé</h4><b>Compte / Payable à</b><p>${fmtIban(Q.iban)}<br>${esc(E.nom)}<br>${adr(Q.cr)}</p>${Q.qrr?`<b>Référence</b><p>${fmtRef(Q.ref)}</p>`:''}<b>Payable par${deb?'':' (nom/adresse)'}</b><p>${deb||'<span class="qbox"></span>'}</p><div class="qam"><div><b>Monnaie</b><p>CHF</p></div><div><b>Montant</b><p>${nf(amount,2)}</p></div></div><p class="qdp"><b>Point de dépôt</b></p></div>
+ <div class="qrp"><h4>Section paiement</h4><div class="qgrid"><div>${qrSVG(Q.text)}<div class="qam"><div><b>Monnaie</b><p>CHF</p></div><div><b>Montant</b><p>${nf(amount,2)}</p></div></div></div>
+ <div><b>Compte / Payable à</b><p>${fmtIban(Q.iban)}<br>${esc(E.nom)}<br>${adr(Q.cr)}</p>${Q.qrr?`<b>Référence</b><p>${fmtRef(Q.ref)}</p>`:''}<b>Informations supplémentaires</b><p>Facture ${no}</p><b>Payable par${deb?'':' (nom/adresse)'}</b><p>${deb||'<span class="qbox"></span>'}</p></div></div></div></section>`;}
+
+/* ---------- Régies dans la facture ---------- */
+function regieLines(c,start){return (c.regies||[]).filter(r=>r.sig).map((r,i)=>{const mat=(r.mat||[]).reduce((s,m)=>s+(+m.q||0)*(+m.pu||0),0),tot=Math.round(((+r.h||0)*(+r.n||1)*P.regie+mat)/5)*5;
+ return{pos:start+(i+1)*10,id:'reg_'+r.id,t:`Travaux en régie – bon ${r.no} du ${fd(r.date)}`,d:`${esc(r.desc||'')} · ${nf((+r.h||0)*(+r.n||1),1)} h × CHF ${nf(P.regie)}${mat?` + matériel ${nf(mat,2)}`:''} · signé par ${esc(r.who||'le client')}`,q:1,u:'forfait',tot,pu:tot};});}
+function docLines(c,isF){const PO=postes(c);if(!isF)return PO;const last=PO.length?PO[PO.length-1].pos:0;return PO.concat(regieLines(c,last));}
+
+/* ---------- Devis : suivi ---------- */
+const DST={brouillon:'Brouillon',envoye:'Envoyé',relance:'Relancé',accepte:'Accepté',refuse:'Refusé'};
+function devisStats(){const L=list.filter(c=>c.devisNo);const by=k=>L.filter(c=>(c.devisSt||'brouillon')===k);const dec=by('accepte').length+by('refuse').length;
+ const att=L.filter(c=>['envoye','relance'].includes(c.devisSt)),attHT=att.reduce((s,c)=>s+cost(c).ht,0);
+ const old=att.filter(c=>c.devisSent&&(Date.now()-new Date(c.devisSent+'T12:00'))/864e5>14);
+ return{n:L.length,acc:by('accepte').length,ref:by('refuse').length,att:att.length,attHT,rate:dec?by('accepte').length/dec:null,old};}
+function devisRelance(c){const t=`Madame, Monsieur,\n\nNous revenons vers vous au sujet de notre devis ${c.devisNo} du ${fd(c.devisDate)} pour vos travaux d'étanchéité${c.nom?' ('+c.nom+')':''}.\n\nAvez-vous pu en prendre connaissance ? Nous restons volontiers à votre disposition pour toute question ou pour adapter l'offre à vos besoins.\n\nAvec nos meilleures salutations,\n${P.ent.nom}${P.ent.tel?'\n'+P.ent.tel:''}`;shareOrCopy(t,'Relance copiée.');}
+
+/* ---------- Agenda ---------- */
+function chantierDays(c){const pl=plan(c);return workDates(c.start,pl.days.length).map(d=>d.toISOString().slice(0,10));}
+function renderAgenda(){
+ const base=new Date();base.setDate(base.getDate()+agWeek*7-((base.getDay()+6)%7));const days=[...Array(5)].map((_,i)=>{const d=new Date(base);d.setDate(base.getDate()+i);return d;});
+ const C=list.filter(c=>c.start&&c.statut!=='termine'),map={};for(const c of C)for(const d of chantierDays(c))(map[d]=map[d]||[]).push(c);
+ const name=id=>(OUV.list.find(o=>o.id===id)||{}).nom||'?';
+ app.innerHTML=navTop()+`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px"><h1>Agenda</h1><div style="display:flex;gap:8px"><button class="btn gh sm" type="button" id="wp">‹</button><button class="btn gh sm" type="button" id="w0">Cette semaine</button><button class="btn gh sm" type="button" id="wn">›</button></div></div>
+ <p class="note">Semaine du ${fd(days[0].toISOString().slice(0,10))}. Les chantiers apparaissent dès qu'ils ont une date de début (Métrés) et une équipe (onglet Suivi).</p>
+ ${days.map(d=>{const k=d.toISOString().slice(0,10),L=map[k]||[],used={};L.forEach(c=>(c.equipe||[]).forEach(o=>used[o]=(used[o]||0)+1));const clash=Object.entries(used).filter(([,n])=>n>1).map(([o])=>name(o));
+  return `<div class="day"><h3><span>${fdate(d)}</span><small style="color:var(--mut);font-weight:500">${L.length} chantier${L.length>1?'s':''}</small></h3>${L.length?`<ul>${L.map(c=>`<li><b>${esc(c.nom||'Sans nom')}</b> · ${(c.equipe||[]).length?(c.equipe||[]).map(name).join(', '):'<span style="color:var(--accd)">équipe non affectée</span>'}</li>`).join('')}</ul>`:'<p class="note">Libre</p>'}${clash.length?`<div class="warn">${clash.join(', ')} prévu sur plusieurs chantiers ce jour-là.</div>`:''}</div>`;}).join('')}
+ <div class="card sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Équipe</h2><button class="btn sm" type="button" id="addouv">+ Ouvrier</button></div>
+ ${OUV.list.length?`<table style="margin-top:8px"><tbody>${OUV.list.map(o=>`<tr><td><b>${esc(o.nom)}</b><br><small style="color:var(--mut)">${esc(o.role||'')}${o.tel?' · '+esc(o.tel):''}</small></td><td class="r"><button class="btn gh sm" type="button" data-delouv="${o.id}" style="min-height:34px">Retirer</button></td></tr>`).join('')}</tbody></table>`:'<p class="note">Ajoute tes ouvriers pour les affecter aux chantiers et pointer leurs heures.</p>'}</div>
+ <p class="note" style="margin-top:12px">Météo : consulte MétéoSuisse avant chaque journée de soudure ou de résine.</p>`;
+ bindNav();$('#wp').onclick=()=>{agWeek--;render();};$('#wn').onclick=()=>{agWeek++;render();};$('#w0').onclick=()=>{agWeek=0;render();};
+ $('#addouv').onclick=()=>{const d=$('#dlg');d.innerHTML=`<h2>Nouvel ouvrier</h2><div class="g2" style="margin-top:12px"><label class="f">Nom<input class="t" id="o_n"></label><label class="f">Fonction<input class="t" id="o_r" placeholder="Ex. : chef d'équipe"></label><label class="f">Téléphone<input class="t" id="o_t" type="tel"></label></div><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn gh sm" type="button" id="o_no">Annuler</button><button class="btn sm" type="button" id="o_ok">Ajouter</button></div>`;d.showModal();$('#o_no').onclick=()=>d.close();$('#o_ok').onclick=async()=>{const n=$('#o_n').value.trim();if(!n)return;await OUV.save({id:uid('o'),nom:n,role:$('#o_r').value.trim(),tel:$('#o_t').value.trim()});d.close();render();};};
+ app.querySelectorAll('[data-delouv]').forEach(b=>b.onclick=async()=>{await OUV.del(b.dataset.delouv);render();});}
+let agWeek=0;
+
+/* ---------- Clients et entretien ---------- */
+function clientsAll(){const M={};const key=s=>String(s||'').trim().toLowerCase();
+ for(const k of CLI.list){M[key(k.nom)]={...k,ch:[]};}
+ for(const c of list){if(!c.client)continue;const k=key(c.client);M[k]=M[k]||{id:'',nom:c.client,adresse:c.adresse,ch:[]};M[k].ch.push(c);if(!M[k].adresse)M[k].adresse=c.adresse;}
+ return Object.values(M).sort((a,b)=>a.nom.localeCompare(b.nom));}
+function entretienDue(){return list.filter(c=>c.entretien&&c.entretien.on).map(c=>{const ref=c.entretien.last||c.recDate||c.factDate||c.start||today();const d=new Date(ref+'T12:00');d.setMonth(d.getMonth()+(+c.entretien.m||12));return{c,next:d.toISOString().slice(0,10)};}).sort((a,b)=>a.next.localeCompare(b.next));}
+function renderClients(){const A=clientsAll(),D=entretienDue(),soon=new Date();soon.setDate(soon.getDate()+30);const S=soon.toISOString().slice(0,10);
+ app.innerHTML=navTop()+`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px"><h1>Clients</h1><button class="btn sm" type="button" id="addcli">+ Client</button></div>
+ <div class="card sec"><h2>Contrôles d'entretien</h2>${D.length?`<table style="margin-top:8px"><tbody>${D.map(x=>`<tr style="${x.next<=S?'background:light-dark(#fff3ee,#2a1a14)':''}"><td><b>${esc(x.c.client||x.c.nom)}</b> · ${esc(x.c.nom||'')}<br><small style="color:${x.next<=S?'var(--accd)':'var(--mut)'}">Prochain contrôle : ${fd(x.next)}${x.c.entretien.prix?' · CHF '+nf(x.c.entretien.prix):''}</small></td><td class="r"><button class="btn sm" type="button" data-prop="${x.c.id}" style="min-height:34px">Proposer</button><br><button class="btn gh sm" type="button" data-done="${x.c.id}" style="min-height:34px;margin-top:4px">Fait</button></td></tr>`).join('')}</tbody></table>`:'<p class="note">Active « Contrôle d\'entretien » dans l\'onglet Suivi d\'un chantier terminé : l\'application te rappellera de proposer le contrôle chaque année.</p>'}</div>
+ <div class="list">${A.length?A.map(k=>`<div class="card"><h3>${esc(k.nom)}</h3><small style="color:var(--mut)">${esc([k.adresse,k.tel,k.mail].filter(Boolean).join(' · '))}</small>${k.ch.length?`<p class="note">${k.ch.length} chantier${k.ch.length>1?'s':''} : ${k.ch.map(c=>esc(c.nom||'Sans nom')).join(', ')} · facturé ${chf(k.ch.filter(c=>c.factNo).reduce((s,c)=>s+docLines(c,true).reduce((a,p)=>a+p.tot,0),0))} HT</p>`:''}${k.notes?`<p class="note">${esc(k.notes)}</p>`:''}<div style="margin-top:8px"><button class="btn gh sm" type="button" data-cli="${esc(k.id||'')}" data-cn="${esc(k.nom)}" style="min-height:34px">Modifier</button></div></div>`).join(''):'<div class="card empty">Aucun client. Ils s\'ajoutent tout seuls quand tu indiques un client dans un chantier.</div>'}</div>`;
+ bindNav();$('#addcli').onclick=()=>editClient({id:uid('k'),nom:''});
+ app.querySelectorAll('[data-cli]').forEach(b=>b.onclick=()=>{const k=CLI.list.find(x=>x.id===b.dataset.cli)||{id:uid('k'),nom:b.dataset.cn,adresse:(A.find(a=>a.nom===b.dataset.cn)||{}).adresse||''};editClient(JSON.parse(JSON.stringify(k)));});
+ app.querySelectorAll('[data-prop]').forEach(b=>b.onclick=()=>{const c=list.find(x=>x.id===b.dataset.prop);const t=`Madame, Monsieur,\n\nIl y a bientôt un an, nous avons réalisé l'étanchéité de votre ${TYPES[c.type].toLowerCase()}${c.nom?' ('+c.nom+')':''}. Un contrôle annuel permet de détecter tôt les petits défauts (évacuations bouchées, relevés abîmés, végétation) et de prolonger la durée de vie de votre toiture.\n\nNous vous proposons de passer pour ce contrôle${c.entretien.prix?` au prix de CHF ${nf(c.entretien.prix)}.– HT`:''}. Quelles dates vous conviendraient ?\n\nAvec nos meilleures salutations,\n${P.ent.nom}${P.ent.tel?'\n'+P.ent.tel:''}`;shareOrCopy(t,'Proposition copiée.');});
+ app.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{const c=list.find(x=>x.id===b.dataset.done);const keep=cur;cur=JSON.parse(JSON.stringify(c));cur.entretien.last=today();persist();cur=keep;render();});}
+function editClient(k){const d=$('#dlg');d.innerHTML=`<h2>Client</h2><div class="g2" style="margin-top:12px"><label class="f">Nom<input class="t" id="k_n" value="${esc(k.nom||'')}"></label><label class="f">Adresse<input class="t" id="k_a" value="${esc(k.adresse||'')}" placeholder="Rue 1, 1000 Lausanne"></label><label class="f">Téléphone<input class="t" id="k_t" type="tel" value="${esc(k.tel||'')}"></label><label class="f">E-mail<input class="t" id="k_m" type="email" value="${esc(k.mail||'')}"></label></div><label class="f" style="margin-top:10px">Notes<textarea class="t" id="k_x">${esc(k.notes||'')}</textarea></label>
+ <div style="display:flex;gap:10px;justify-content:space-between;margin-top:14px">${CLI.list.some(x=>x.id===k.id)?'<button class="btn gh sm" type="button" id="k_d" style="color:var(--accd)">Supprimer</button>':'<span></span>'}<span style="display:flex;gap:10px"><button class="btn gh sm" type="button" id="k_no">Annuler</button><button class="btn sm" type="button" id="k_ok">Enregistrer</button></span></div>`;d.showModal();
+ $('#k_no').onclick=()=>d.close();if($('#k_d'))$('#k_d').onclick=async()=>{await CLI.del(k.id);d.close();render();};
+ $('#k_ok').onclick=async()=>{Object.assign(k,{nom:$('#k_n').value.trim(),adresse:$('#k_a').value.trim(),tel:$('#k_t').value.trim(),mail:$('#k_m').value.trim(),notes:$('#k_x').value.trim()});if(!k.nom)return;await CLI.save(k);d.close();render();};}
+
+/* ---------- Stock ---------- */
+const STKPID=()=>({...Object.fromEntries(Object.entries(PRIXN).map(([k,v])=>[k,v])),...Object.fromEntries(ACC.map(([k,l])=>['acc_'+k,l])),'':'Autre (non lié)'});
+const stockFor=(pid,c)=>STK.list.filter(s=>s.pid&&s.pid===pid).reduce((a,s)=>a+(+s.q||0),0)+((c&&c.stockUsed&&c.stockUsed[pid])||0);
+function renderStock(){const P2=STKPID(),val=STK.list.reduce((s,x)=>s+(+x.q||0)*(+x.pu||0),0);
+ app.innerHTML=navTop()+`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px"><h1>Stock</h1><button class="btn sm" type="button" id="addstk">+ Article</button></div>
+ <p class="note">Restes de rouleaux, PIR, accessoires… Lie chaque article à un matériau : la liste de matériel de tes chantiers en tiendra compte et ta commande sera réduite d'autant. Valeur du stock : ${chf(val)}.</p>
+ ${['camion','depot'].map(l=>{const L=STK.list.filter(x=>(x.lieu||'depot')===l);return `<div class="card sec"><h2>${l==='camion'?'Camion':'Dépôt'}</h2>${L.length?`<table style="margin-top:8px"><tbody>${L.map(x=>`<tr><td><b>${esc(x.nom)}</b><br><small style="color:var(--mut)">${esc(P2[x.pid||'']||'')}</small></td><td class="r" style="white-space:nowrap"><button class="btn gh sm" type="button" data-dq="${x.id}" data-v="-1" style="min-height:34px;padding:0 10px">−</button> <b>${nf(+x.q||0,1)}</b> ${esc(x.u||'')} <button class="btn gh sm" type="button" data-dq="${x.id}" data-v="1" style="min-height:34px;padding:0 10px">+</button><br><button class="btn gh sm" type="button" data-estk="${x.id}" style="min-height:30px;margin-top:4px">Modifier</button></td></tr>`).join('')}</tbody></table>`:'<p class="note">Vide.</p>'}</div>`;}).join('')}`;
+ bindNav();$('#addstk').onclick=()=>editStock({id:uid('s'),nom:'',q:1,u:'rouleau',lieu:'depot',pid:'',pu:0});
+ app.querySelectorAll('[data-dq]').forEach(b=>b.onclick=async()=>{const x=STK.list.find(s=>s.id===b.dataset.dq);x.q=Math.max(0,(+x.q||0)+(+b.dataset.v));await STK.save(x);render();});
+ app.querySelectorAll('[data-estk]').forEach(b=>b.onclick=()=>editStock(JSON.parse(JSON.stringify(STK.list.find(s=>s.id===b.dataset.estk)))));}
+function editStock(x){const d=$('#dlg'),P2=STKPID();d.innerHTML=`<h2>Article en stock</h2><div class="g2" style="margin-top:12px"><label class="f">Désignation<input class="t" id="s_n" value="${esc(x.nom)}" placeholder="Ex. : EP4 restes"></label><label class="f">Matériau lié<select class="t" id="s_p">${Object.entries(P2).map(([k,v])=>`<option value="${k}" ${x.pid===k?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
+ <label class="f">Quantité<input class="t n" type="number" step="any" min="0" id="s_q" value="${x.q}"></label><label class="f">Unité<input class="t" id="s_u" value="${esc(x.u)}" placeholder="rouleau, panneau, pce…"></label><label class="f">Lieu<select class="t" id="s_l"><option value="depot" ${x.lieu!=='camion'?'selected':''}>Dépôt</option><option value="camion" ${x.lieu==='camion'?'selected':''}>Camion</option></select></label><label class="f">Valeur unitaire (CHF)<input class="t n" type="number" step="any" min="0" id="s_v" value="${x.pu||0}"></label></div>
+ <p class="note">Pour que la commande soit réduite, l'unité doit correspondre au conditionnement de la liste de matériel (rouleau, panneau, bidon, pièce…).</p>
+ <div style="display:flex;gap:10px;justify-content:space-between;margin-top:14px">${STK.list.some(s=>s.id===x.id)?'<button class="btn gh sm" type="button" id="s_d" style="color:var(--accd)">Supprimer</button>':'<span></span>'}<span style="display:flex;gap:10px"><button class="btn gh sm" type="button" id="s_no">Annuler</button><button class="btn sm" type="button" id="s_ok">Enregistrer</button></span></div>`;d.showModal();
+ $('#s_no').onclick=()=>d.close();if($('#s_d'))$('#s_d').onclick=async()=>{await STK.del(x.id);d.close();render();};
+ $('#s_ok').onclick=async()=>{Object.assign(x,{nom:$('#s_n').value.trim()||P2[$('#s_p').value],pid:$('#s_p').value,q:+$('#s_q').value||0,u:$('#s_u').value.trim(),lieu:$('#s_l').value,pu:+$('#s_v').value||0});await STK.save(x);d.close();render();};}
+async function stockOut(c){const M=materials(c);let n=0;cur.stockUsed=cur.stockUsed||{};for(const m of M){let need=m.packN-(cur.stockUsed[m.pid]||0);for(const s of STK.list.filter(s=>s.pid&&s.pid===m.pid)){if(need<=0)break;const t=Math.min(need,+s.q||0);if(t>0){s.q=(+s.q||0)-t;need-=t;n++;cur.stockUsed[m.pid]=(cur.stockUsed[m.pid]||0)+t;await STK.save(s);}}}
+ cur.stockOut=today();queue();alertBox(n?'Stock mis à jour : les articles utilisés ont été sortis.':'Aucun article en stock ne correspond à ce chantier.');render();}
+
+/* ---------- Onglet Suivi du chantier ---------- */
+function vSuivi(c){const pl=plan(c),H=(c.heures||[]),hR=H.reduce((s,x)=>s+(+x.h||0),0),name=id=>(OUV.list.find(o=>o.id===id)||{}).nom||'?',ph=PH.list.filter(p=>p.ch===c.id);
+ const st=c.devisSt||'brouillon',age=c.devisSent?Math.round((Date.now()-new Date(c.devisSent+'T12:00'))/864e5):0;
+ return `<div class="card"><h2>Devis</h2><div class="g2" style="margin-top:10px"><label class="f">Statut${sel('devisSt',DST,st)}</label><label class="f">Envoyé le<input class="t" type="date" id="devisSent" value="${esc(c.devisSent||'')}"></label></div>
+ ${['envoye','relance'].includes(st)&&age>14?`<div class="warn">Devis envoyé il y a ${age} jours sans réponse. <button class="btn sm" type="button" id="drel" style="min-height:34px;margin-left:6px">Préparer une relance</button></div>`:''}</div>
+ <div class="card sec"><h2>Équipe affectée</h2>${OUV.list.length?OUV.list.map(o=>`<label class="chk"><input type="checkbox" data-eq="${o.id}" ${(c.equipe||[]).includes(o.id)?'checked':''}><span style="text-decoration:none;color:var(--ink)">${esc(o.nom)}${o.role?' · '+esc(o.role):''}</span></label>`).join(''):'<p class="note">Ajoute tes ouvriers dans Agenda → Équipe.</p>'}</div>
+ <div class="card sec"><h2>Pointage des heures</h2><div class="kpi" style="margin-top:10px"><div><span>Heures prévues</span><b>${nf(pl.total)} h</b></div><div style="background:${hR<=pl.total?'var(--ok)':'var(--acc)'}"><span>Heures réelles</span><b>${nf(hR,1)} h</b></div><div><span>Coût réel MO</span><b>${chf(hR*P.tauxH)}</b></div></div>
+ <div class="g2" style="margin-top:12px"><label class="f">Date<input class="t" type="date" id="h_d" value="${today()}"></label><label class="f">Ouvrier<select class="t" id="h_o">${(OUV.list.length?OUV.list:[{id:'',nom:'Moi'}]).map(o=>`<option value="${o.id}">${esc(o.nom)}</option>`).join('')}</select></label><label class="f">Heures<input class="t n" type="number" step="0.25" min="0" id="h_h" value="8"></label></div><button class="btn sm" type="button" id="h_add" style="margin-top:10px">Ajouter les heures</button>
+ ${H.length?`<table style="margin-top:10px"><tbody>${H.slice().sort((a,b)=>b.d.localeCompare(a.d)).map(x=>`<tr><td>${fd(x.d)} · ${esc(x.o?name(x.o):'Moi')}</td><td class="r">${nf(+x.h,2)} h <button class="btn gh sm" type="button" data-hdel="${x.id}" style="min-height:30px;padding:0 10px">×</button></td></tr>`).join('')}</tbody></table>`:''}</div>
+ <div class="card sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Bons de régie</h2><button class="btn sm" type="button" id="r_new">+ Bon</button></div><p class="note">Travaux imprévus signés par le client sur place. Les bons signés s'ajoutent automatiquement à la facture (taux régie CHF ${nf(P.regie)}/h).</p>
+ ${(c.regies||[]).length?`<table style="margin-top:8px"><tbody>${c.regies.map(r=>`<tr><td><b>${r.no}</b> · ${fd(r.date)}<br><small style="color:var(--mut)">${esc(r.desc||'')}</small><br><small style="color:${r.sig?'var(--ok)':'var(--accd)'}">${r.sig?'Signé par '+esc(r.who||'le client'):'Non signé'}</small></td><td class="r"><button class="btn gh sm" type="button" data-rpr="${r.id}" style="min-height:34px">PDF</button><br><button class="btn gh sm" type="button" data-red="${r.id}" style="min-height:34px;margin-top:4px">Modifier</button></td></tr>`).join('')}</tbody></table>`:''}</div>
+ <div class="card sec"><h2>Photos et rapport de chantier</h2><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px"><label class="btn gh sm filebtn">Photo avant<input type="file" accept="image/*" capture="environment" data-ph="avant"></label><label class="btn gh sm filebtn">Photo pendant<input type="file" accept="image/*" capture="environment" data-ph="pendant"></label><label class="btn gh sm filebtn">Photo après<input type="file" accept="image/*" capture="environment" data-ph="apres"></label><label class="btn gh sm filebtn">Galerie<input type="file" accept="image/*" multiple data-ph="apres"></label></div>
+ ${ph.length?`<div class="thumbs" style="margin-top:10px">${ph.map(p=>`<figure style="margin:0;position:relative"><img src="${p.data}" alt="Photo ${p.k}" style="width:92px;height:92px"><figcaption style="font-size:11px;color:var(--mut)">${p.k}</figcaption><button type="button" data-phdel="${p.id}" aria-label="Supprimer la photo" style="position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:24px;height:24px;background:#000a;color:#fff;cursor:pointer">×</button></figure>`).join('')}</div>`:''}
+ <label class="f" style="margin-top:12px">Travaux réalisés<textarea class="t" id="rapTrav">${esc(c.rapTrav||pl.T.map(t=>'- '+t.n).join('\n'))}</textarea></label>
+ <label class="f" style="margin-top:10px">Réserves / remarques<textarea class="t" id="rapRes">${esc(c.rapRes||'')}</textarea></label>
+ <div class="g2" style="margin-top:10px"><label class="f">Date de réception<input class="t" type="date" id="recDate" value="${esc(c.recDate||'')}"></label><label class="f">Signé par<input class="t" id="recWho" value="${esc(c.recWho||c.client||'')}"></label></div>
+ ${c.recSig?`<p class="note">Signature du client enregistrée. <button class="btn gh sm" type="button" id="rs_x" style="min-height:30px">Refaire</button></p><img src="${c.recSig}" alt="Signature" style="max-width:240px;background:#fff;border-radius:6px">`:`${sigHTML('rsig')}<button class="btn sm" type="button" id="rs_ok" style="margin-top:8px">Enregistrer la signature</button>`}
+ <div style="margin-top:12px"><button class="btn" type="button" id="rap_pdf">Rapport de chantier (PDF)</button></div></div>
+ <div class="card sec"><h2>Contrôle d'entretien</h2><label class="chk"><input type="checkbox" id="ent_on" ${c.entretien&&c.entretien.on?'checked':''}><span style="text-decoration:none;color:var(--ink)">Me rappeler de proposer un contrôle à ce client</span></label>
+ ${c.entretien&&c.entretien.on?`<div class="g2" style="margin-top:8px"><label class="f">Tous les (mois)<input class="t n" type="number" min="1" id="ent_m" value="${c.entretien.m||12}"></label><label class="f">Prix du contrôle HT (CHF)<input class="t n" type="number" min="0" id="ent_p" value="${c.entretien.prix||''}" placeholder="Ex. : 250"></label></div>`:''}</div>`;}
+function bindSuivi(c){
+ if($('#drel'))$('#drel').onclick=()=>{devisRelance(c);cur.devisSt='relance';queue();render();};
+ app.querySelectorAll('[data-eq]').forEach(b=>b.onchange=()=>{const s=new Set(cur.equipe||[]);b.checked?s.add(b.dataset.eq):s.delete(b.dataset.eq);cur.equipe=[...s];queue();});
+ $('#h_add').onclick=()=>{const h=+$('#h_h').value||0;if(!h)return;cur.heures=cur.heures||[];cur.heures.push({id:uid('h'),d:$('#h_d').value||today(),o:$('#h_o').value,h});queue();render();};
+ app.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=()=>{cur.heures=(cur.heures||[]).filter(x=>x.id!==b.dataset.hdel);queue();render();});
+ $('#r_new').onclick=()=>{const yr=new Date().getFullYear();P.ent.nR=(+P.ent.nR||0)+1;saveParams();editRegie({id:uid('r'),no:`R-${yr}-${String(P.ent.nR).padStart(3,'0')}`,date:today(),desc:'',h:1,n:1,mat:[],who:c.client||''});};
+ app.querySelectorAll('[data-red]').forEach(b=>b.onclick=()=>editRegie(JSON.parse(JSON.stringify(cur.regies.find(r=>r.id===b.dataset.red)))));
+ app.querySelectorAll('[data-rpr]').forEach(b=>b.onclick=()=>{cur.docType='regie';cur.regSel=b.dataset.rpr;tab='doc';queue();render();window.scrollTo(0,0);});
+ app.querySelectorAll('[data-ph]').forEach(i=>i.onchange=async()=>{for(const f of [...i.files].slice(0,8)){try{await PH.save({id:uid('p'),ch:cur.id,k:i.dataset.ph,d:today(),data:await thumb(f)});}catch(_){}}render();});
+ app.querySelectorAll('[data-phdel]').forEach(b=>b.onclick=async()=>{await PH.del(b.dataset.phdel);render();});
+ if($('#rsig')){const pad=sigPad($('#rsig'));$('#rsigx').onclick=()=>pad.clear();$('#rs_ok').onclick=()=>{const d=pad.data();if(!d)return;cur.recSig=d;if(!cur.recDate)cur.recDate=today();queue();render();};}
+ if($('#rs_x'))$('#rs_x').onclick=()=>{cur.recSig='';queue();render();};
+ $('#rap_pdf').onclick=()=>{cur.docType='rapport';tab='doc';queue();render();window.scrollTo(0,0);};
+ $('#ent_on').onchange=e=>{cur.entretien={...(cur.entretien||{m:12}),on:e.target.checked};queue();render();};
+ if($('#ent_m'))$('#ent_m').oninput=e=>{cur.entretien.m=+e.target.value||12;queue();};
+ if($('#ent_p'))$('#ent_p').oninput=e=>{cur.entretien.prix=+e.target.value||0;queue();};}
+function editRegie(r){const d=$('#dlg');d.innerHTML=`<h2>Bon de régie ${r.no}</h2><div class="g2" style="margin-top:12px"><label class="f">Date<input class="t" type="date" id="g_d" value="${esc(r.date)}"></label><label class="f">Heures par ouvrier<input class="t n" type="number" step="0.25" min="0" id="g_h" value="${r.h}"></label><label class="f">Nombre d'ouvriers<input class="t n" type="number" min="1" id="g_n" value="${r.n}"></label></div>
+ <label class="f" style="margin-top:10px">Travaux réalisés<textarea class="t" id="g_t" placeholder="Ex. : reprise du support pourri sur 3 m², remplacement d'une naissance">${esc(r.desc)}</textarea></label>
+ <label class="f" style="margin-top:10px">Matériel (une ligne par article : désignation ; quantité ; prix unitaire CHF)<textarea class="t" id="g_m" placeholder="Panneau OSB 22 mm ; 2 ; 38">${esc((r.mat||[]).map(m=>`${m.d} ; ${m.q} ; ${m.pu}`).join('\n'))}</textarea></label>
+ <label class="f" style="margin-top:10px">Nom du signataire<input class="t" id="g_w" value="${esc(r.who||'')}"></label>
+ ${r.sig?`<p class="note">Signé. <button class="btn gh sm" type="button" id="g_rs" style="min-height:30px">Refaire la signature</button></p>`:sigHTML('gsig')}
+ <div style="display:flex;gap:10px;justify-content:space-between;margin-top:14px">${(cur.regies||[]).some(x=>x.id===r.id)?'<button class="btn gh sm" type="button" id="g_del" style="color:var(--accd)">Supprimer</button>':'<span></span>'}<span style="display:flex;gap:10px"><button class="btn gh sm" type="button" id="g_no">Annuler</button><button class="btn sm" type="button" id="g_ok">Enregistrer</button></span></div>`;d.showModal();
+ let pad=null;if($('#gsig')){pad=sigPad($('#gsig'));$('#gsigx').onclick=()=>pad.clear();}
+ if($('#g_rs'))$('#g_rs').onclick=()=>{r.sig='';d.close();editRegie(r);};
+ $('#g_no').onclick=()=>d.close();
+ if($('#g_del'))$('#g_del').onclick=()=>{cur.regies=cur.regies.filter(x=>x.id!==r.id);queue();d.close();render();};
+ $('#g_ok').onclick=()=>{Object.assign(r,{date:$('#g_d').value,h:+$('#g_h').value||0,n:+$('#g_n').value||1,desc:$('#g_t').value.trim(),who:$('#g_w').value.trim(),mat:$('#g_m').value.split('\n').map(l=>l.split(';').map(x=>x.trim())).filter(a=>a[0]).map(([dd,q,pu])=>({d:dd,q:+String(q||'1').replace(',','.')||1,pu:+String(pu||'0').replace(',','.')||0}))});if(pad){const s=pad.data();if(s){r.sig=s;r.sigDate=today();}}
+  cur.regies=cur.regies||[];const i=cur.regies.findIndex(x=>x.id===r.id);if(i<0)cur.regies.push(r);else cur.regies[i]=r;queue();d.close();render();};}
+
+/* ---------- Rapport de chantier et bon de régie (documents) ---------- */
+const DOCT={devis:'Devis',facture:'Facture',rapport:'Rapport de chantier',regie:'Bon de régie'};
+const docHead=(c,label)=>`<header class="dh"><div><div class="dn">${esc(P.ent.nom)}</div><div>${esc(P.ent.adr)}</div><div>${esc(P.ent.npa)}</div><div>${esc(P.ent.tel)}</div><div>${esc(P.ent.mail)}</div>${P.ent.tva?`<div>N° TVA ${esc(P.ent.tva)}</div>`:''}</div><div class="dc"><div class="dl">${label}</div><div><b>${esc(c.client||'—')}</b></div><div style="white-space:pre-line">${esc(c.adresse||'')}</div></div></header>`;
+function vDocOther(c){const isR=c.docType==='regie',R=c.regies||[],r=isR?(R.find(x=>x.id===c.regSel)||R[0]):null,pl=plan(c),g=geo(c),ph=PH.list.filter(p=>p.ch===c.id);
+ const ctrl=`<div class="card noprint"><div class="g2"><label class="f">Document${sel('docType',DOCT,c.docType)}</label>${isR&&R.length>1?`<label class="f">Bon${sel('regSel',Object.fromEntries(R.map(x=>[x.id,x.no])),r&&r.id)}</label>`:''}</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn" type="button" id="pdf">${window.Android?'Enregistrer en PDF / Imprimer':'Copier le texte'}</button>${window.Android?'<button class="btn gh sm" type="button" id="shdoc">Envoyer le texte</button>':''}</div></div>`;
+ if(isR&&!r)return ctrl+`<div class="card sec empty">Aucun bon de régie. Crée-en un dans l'onglet Suivi.</div>`;
+ if(isR){const mo=(+r.h||0)*(+r.n||1),moT=mo*P.regie,mat=(r.mat||[]),matT=mat.reduce((s,m)=>s+m.q*m.pu,0),ht=moT+matT,tva=ht*P.tva/100;
+  return ctrl+`<article class="doc" id="doc">${docHead(c,'Client')}<h1 class="dt">Bon de régie N° ${r.no}</h1><div class="dm"><div><span>Date</span>${fd(r.date)}</div><div><span>Chantier</span>${esc(c.nom||'')}</div></div>
+  <p class="do"><b>Travaux réalisés :</b><br><span style="white-space:pre-line">${esc(r.desc||'')}</span></p>
+  <table class="dtab"><thead><tr><th>Désignation</th><th class="r">Qté</th><th class="r">P.U. CHF</th><th class="r">Total CHF</th></tr></thead><tbody>
+  <tr><td>Main-d'œuvre en régie (${r.n} ouvrier${r.n>1?'s':''} × ${nf(+r.h,2)} h)</td><td class="r">${nf(mo,2)} h</td><td class="r">${nf(P.regie,2)}</td><td class="r">${nf(moT,2)}</td></tr>
+  ${mat.map(m=>`<tr><td>${esc(m.d)}</td><td class="r">${nf(m.q,2)}</td><td class="r">${nf(m.pu,2)}</td><td class="r">${nf(m.q*m.pu,2)}</td></tr>`).join('')}</tbody></table>
+  <table class="dsum"><tr><td>Total HT</td><td class="r">${nf(ht,2)}</td></tr><tr><td>TVA ${nf(P.tva,1)} %</td><td class="r">${nf(tva,2)}</td></tr><tr class="tt"><td>Total TTC</td><td class="r">CHF ${nf(ht+tva,2)}</td></tr></table>
+  <p style="margin-top:14px">Le client confirme l'exécution des travaux ci-dessus, non compris dans le devis ${c.devisNo||''}, et accepte leur facturation aux conditions indiquées.</p>
+  <div class="dsig"><div>Pour ${esc(P.ent.nom)} :<br><br>……………………………</div><div>Le client${r.who?' ('+esc(r.who)+')':''}, le ${fd(r.sigDate||r.date)} :<br>${r.sig?`<img src="${r.sig}" alt="Signature du client" style="max-width:220px;height:auto">`:'<br>……………………………'}</div></div></article>`;}
+ const grp=k=>ph.filter(p=>p.k===k);
+ return ctrl+`<article class="doc" id="doc">${docHead(c,'Maître d\'ouvrage')}<h1 class="dt">Rapport de chantier</h1><div class="dm"><div><span>Chantier</span>${esc(c.nom||'')}</div><div><span>Réception</span>${fd(c.recDate)||'—'}</div>${c.devisNo?`<div><span>Réf. devis</span>${c.devisNo}</div>`:''}</div>
+ <h3 style="margin-top:16px;color:#0f3b4c">Ouvrage réalisé</h3><p>${esc(TYPES[c.type])} · ${nf(g.A)} m² · ${SYS[c.sys]}${+c.iso&&c.type!=='mur'?` · isolation PIR ${c.iso} mm`:''}${taper(c).on?` · isolation pentée ${nf(taper(c).p,1)} %`:''}${c.type!=='mur'?` · ${PROT[c.prot].toLowerCase()} · ${nf(g.rel,1)} ml de relevés (développé ${nf(c.dev)} cm)`:''}</p>
+ <h3 style="margin-top:12px;color:#0f3b4c">Travaux réalisés</h3><p style="white-space:pre-line">${esc(c.rapTrav||pl.T.map(t=>'- '+t.n).join('\n'))}</p>
+ ${['avant','pendant','apres'].map(k=>grp(k).length?`<h3 style="margin-top:12px;color:#0f3b4c">Photos ${k==='apres'?'après':k}</h3><div class="pgrid">${grp(k).map(p=>`<img src="${p.data}" alt="Photo ${k}">`).join('')}</div>`:'').join('')}
+ <h3 style="margin-top:12px;color:#0f3b4c">Réserves</h3><p style="white-space:pre-line">${esc(c.rapRes||'Aucune réserve.')}</p>
+ <p class="dcond">Les travaux ont été exécutés selon la norme SIA 271. Le délai de garantie court à compter de la date de réception, selon la norme SIA 118. Un contrôle annuel des évacuations et des relevés est recommandé.</p>
+ <div class="dsig"><div>Pour ${esc(P.ent.nom)} :<br><br>……………………………</div><div>Le maître d'ouvrage${c.recWho?' ('+esc(c.recWho)+')':''}${c.recDate?', le '+fd(c.recDate):''} :<br>${c.recSig?`<img src="${c.recSig}" alt="Signature du client" style="max-width:220px;height:auto">`:'<br>……………………………'}</div></div></article>`;}
+
+/* ===================== OUTILLAGE ET PETIT MATÉRIEL ===================== */
+function outils(c){const g=geo(c),A=g.A,isRoof=c.type!=="mur",hasIso=isRoof&&+c.iso>0,bit=c.sys==="bitume",flame=bit||(c.sys!=="resine"&&hasIso),reno=c.etat==="reno",
+ res=c.sys==="resine",rac=(+c.seuils||0)+(+c.trav||0)+(+c.angles||0)>0,colle=c.sys==="epdm"||c.sys==="fpo",T={};
+ const tm=Math.max(1,+c.team||1),add=(cat,k,t)=>{(T[cat]=T[cat]||[]).push([k,t]);},s=n=>n>1?'s':'';
+ const E="Sécurité et protection";
+ add(E,"casq",`Casques (${tm})`);add(E,"lun",`Lunettes de protection (${tm})`);add(E,"gcuir",`Gants de travail cuir (${tm*2} paires)`);
+ if(flame)add(E,"gchal",`Gants anti-chaleur (${tm} paires)`);
+ add(E,"glat","Gants nitrile / latex jetables (boîte de 100)");
+ add(E,"chau","Chaussures de sécurité, genouillères");add(E,"bouch","Bouchons / casques antibruit");
+ if(res||reno)add(E,"masq",`Masques ${res?'à cartouche A2 + FFP2':'FFP2'} (${tm})`);
+ if(isRoof&&!c.garde){add(E,"harn",`Harnais + longes + absorbeurs (${tm})`);add(E,"anc","Points d'ancrage / ligne de vie provisoire");add(E,"bali","Balisage zone de chute : ruban, chandelles, piquets");}
+ if(flame){add(E,"ext",`Extincteur${s(Math.min(tm,3))} à poudre 6 kg (${Math.min(tm,3)})`);add(E,"cfeu","Couverture anti-feu + seau d'eau");}
+ add(E,"trou","Trousse de secours"+(res||colle||flame?" + rince-œil":""));add(E,"sol","Crème solaire, casquettes, eau à boire");
+ const AC="Accès et levage";add(AC,"ech","Échelle (dépasse de 1 m, attachée en haut)");add(AC,"poul","Corde + poulie ou seau de levage pour le petit matériel");add(AC,"sang","Sangles d'arrimage (camion et toit)");
+ const M="Mesure et traçage";add(M,"metr",`Mètres ruban 5 m (${tm})`);add(M,"deca","Décamètre 30 m");add(M,"cord","Cordeau à tracer + craie");add(M,"cray","Crayons de charpentier, marqueurs indélébiles");
+ add(M,"niv","Niveau 60 cm + règle alu 2 m, équerre");if(reno||res)add(M,"hum","Humidimètre (support sec avant de poser)");if(res)add(M,"therm","Thermomètre de surface (point de rosée)");
+ const C="Coupe";add(C,"cut",`Cutters (${tm+1})`);add(C,"lamd","Lames de cutter droites (boîte de 100)");
+ if(bit||colle||reno)add(C,"lamc","Lames crochet (boîte)");add(C,"cis","Ciseaux forts"+(res||rac?" (voile de renfort)":""));
+ if(hasIso){add(C,"sciso","Scie égoïne / scie à isolant");add(C,"cutiso","Couteau à isolant long");}
+ add(C,"disq","Disqueuse 125 mm + disques métal (×10)"+(reno?" + disques diamant":""));
+ if(c.sys==="fpo"||(+c.acrH||0)>0||reno)add(C,"cist","Cisailles à tôle droite et gauche, pince à plier");add(C,"scim","Scie à métaux");
+ const O="Outillage à main et électroportatif";
+ add(O,"viss","Visseuses + embouts + 2 batteries chacune + chargeurs");add(O,"perf","Perforateur + forets béton 6–12 mm");
+ if(+c.evac>0||+c.trav>0)add(O,"cloc","Scies cloches (naissances, traversées)");add(O,"form","Forets métal");
+ add(O,"mart","Marteau, massette, burin, pied de biche");add(O,"pinc","Pinces (multiprise, coupante), tournevis, jeu de clés");
+ add(O,"mast","Pistolet à mastic + cartouches (mastic PU / bitumineux)");if(c.sys==="fpo"||(+c.acrH||0)>0||accQ(c,"couv")>0)add(O,"riv","Riveteuse + rivets, vis à tôle");
+ if(accQ(c,"solin")+accQ(c,"couv")>0)add(O,"for6","Forets béton 6 mm de rechange (×3) pour chevilles à frapper");
+ if(accQ(c,"rive")>0||c.sys==="fpo")add(O,"embx","Embouts / douilles pour vis inox (×5)");
+ add(O,"vis","Assortiment vis, chevilles, rondelles");add(O,"agra","Agrafeuse + agrafes");add(O,"scot","Ruban adhésif toilé, ruban de masquage");
+ const EL="Électricité";add(EL,"enr","Enrouleur 50 m + rallonges");add(EL,"mult","Multiprise de chantier");add(EL,"proj","Projecteur LED (hiver, fin de journée)");add(EL,"gen","Groupe électrogène si pas de courant sur place");
+ const N="Préparation et nettoyage du support";add(N,"bal","Balais (paille et poils durs)");add(N,"souf","Souffleur");add(N,"asp","Aspirateur de chantier");
+ add(N,"bros","Brosse métallique, grattoirs, spatules");if(reno){add(N,"racl","Raclette à toiture / bêche plate");add(N,"brou","Brouette, pelles");add(N,"grav","Sacs à gravats");}
+ if(res)add(N,"pon","Ponceuse + disques abrasifs (préparation du support)");
+ if(flame){const B="Bitume et soudure à la flamme",n=bit?Math.min(tm,3):1;
+  add(B,"chal",`${n} grand${s(n)} chalumeau${n>1?'x':''} + 1 petit chalumeau à détails`);add(B,"flex","Flexibles + détendeurs + clé (+ 1 détendeur de rechange)");
+  add(B,"fuit","Spray / eau savonneuse de contrôle des fuites");add(B,"allu","Allume-gaz + briquets");add(B,"chari","Diable / chariot à bouteilles");
+  if(bit){add(B,"roul","Roulettes de marouflage (larges et étroites)");add(B,"truel","Truelles rondes, spatule chauffante");}
+  add(B,"rprim","Rouleaux à primaire + manches télescopiques");add(B,"bprim","Brosses / pinceaux à primaire");add(B,"bac","Bacs à peinture, seaux");add(B,"solv","Solvant de nettoyage (white-spirit) + chiffons");}
+ if(c.sys==="fpo"){const F="Membrane FPO / PVC";if(A>=60)add(F,"auto","Soudeuse automatique (type Leister Varimat) + rallonge adaptée");
+  add(F,"man","Soudeur manuel à air chaud + buses 20 et 40 mm");add(F,"rsil","Roulettes silicone 28 et 40 mm, roulette laiton");add(F,"blai","Brosse laiton (nettoyage des buses)");
+  add(F,"sond","Sonde / tournevis de contrôle des soudures");add(F,"net","Nettoyant / activateur membrane");add(F,"chif","Chiffons blancs non pelucheux");add(F,"rcol","Rouleaux et pinceaux à colle, bacs");}
+ if(c.sys==="epdm"){const D="Membrane EPDM";add(D,"rcol","Rouleaux à colle + manches, bacs");add(D,"pcol","Pinceaux à colle");add(D,"repd","Roulettes silicone de marouflage");add(D,"pad","Tampons / nettoyant primaire");add(D,"chif","Chiffons propres");}
+ if(res||rac){const R=res?"Résine liquide":"Raccords résine (seuils, traversées, angles)";
+  add(R,"malx","Malaxeur + hélice de mélange");add(R,"seau","Seaux de mélange gradués (propres)");add(R,"bal","Balance de dosage + gobelets doseurs");add(R,"bat","Bâtons / spatules de mélange");
+  add(R,"rres","Rouleaux à résine (spéciaux solvants) + manches");add(R,"pin","Pinceaux plats 30, 50 et 80 mm (plusieurs de chaque)");add(R,"bacr","Bacs à rouleau");
+  add(R,"cisv","Ciseaux pour le voile");add(R,"masq2","Ruban de masquage (bords nets)");add(R,"glat2","Gants nitrile (prévoir 2 paires par personne et par jour)");
+  add(R,"chif","Chiffons, papier absorbant");add(R,"dil","Nettoyant / diluant pour outils");add(R,"bach","Bâche de protection au sol");
+  if(res){add(R,"clou","Semelles à clous");add(R,"crant","Raclette crantée / lisseuse");}add(R,"tim","Minuteur (durée de vie du mélange)");}
+ if(hasIso){const I="Isolation";add(I,"rege","Règle de coupe longue");add(I,"poid","Lests / sacs pour tenir les panneaux au vent");}
+ if(isRoof&&c.prot==="gravier")add("Protection","grav","Pelles, râteaux, brouette (répartition du gravier)");
+ if(isRoof&&c.prot==="dalles")add("Protection","dal","Clé de réglage des plots, cales, maillet caoutchouc");
+ if(isRoof&&c.prot==="vege")add("Protection","veg","Pelles, râteaux, arrosage");
+ const FJ="Fin de journée";add(FJ,"bach","Bâches + lests (isolation, raccords non terminés)");add(FJ,"sacp","Sacs poubelle, big bag déchets");add(FJ,"eau","Bidon d'eau + savon (se laver les mains)");
+ const DC="Documents";add(DC,"docs","Plan, devis, liste de matériel, bons de livraison (téléphone chargé)");add(DC,"phot","Photos avant / pendant / après (pour le rapport)");
+ const base=(P.outilsBase||'').split('\n').map(x=>x.trim()).filter(Boolean);base.forEach((t,i)=>add("Toujours emporter","b"+i+"_"+t.slice(0,12),t));
+ const plus=(c.outilsPlus||'').split('\n').map(x=>x.trim()).filter(Boolean);plus.forEach((t,i)=>add("Pour ce chantier","p"+i+"_"+t.slice(0,12),t));
+ return T;}
+function vOutils(c){const T=outils(c),ok=c.outil||{};let n=0,d=0;
+ const h=Object.entries(T).map(([cat,a])=>`<h3 style="margin-top:12px">${cat}</h3>${a.map(([k,t])=>{n++;if(ok[k])d++;return `<label class="chk"><input type="checkbox" data-ot="${esc(k)}" ${ok[k]?'checked':''}><span>${esc(t)}</span></label>`;}).join('')}`).join('');
+ return `<div class="card sec"><h2>Outillage et petit matériel</h2><p class="note" style="margin-top:4px">Calculé selon le système, l'isolation, la rénovation, les raccords et l'équipe. Coche au chargement du camion : ${d}/${n}.</p>${h}
+ <label class="f" style="margin-top:14px">Ajouter pour ce chantier <small>un outil par ligne</small><textarea class="t" id="outilsPlus" style="min-height:70px">${esc(c.outilsPlus||'')}</textarea></label>
+ <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px"><button class="btn gh sm" type="button" id="otsend">${window.Android?'Envoyer la liste':'Copier la liste'}</button>${d?'<button class="btn gh sm" type="button" id="otclr">Tout décocher</button>':''}</div>
+ <p class="note">Ce que tu emportes sur tous les chantiers se règle dans ⚙ → « Toujours emporter ».</p></div>`;}
+function outilsTxt(c){const T=outils(c);return `Outillage – ${c.nom||'chantier'}${c.adresse?' ('+c.adresse+')':''}\n`+Object.entries(T).map(([cat,a])=>`\n${cat.toUpperCase()}\n`+a.map(([k,t])=>`${(c.outil||{})[k]?'☑':'☐'} ${t}`).join('\n')).join('\n');}
+function bindOutils(){const b=$('#otsend');if(b)b.onclick=()=>{const t=outilsTxt(cur);if(window.Android&&window.Android.share){window.Android.share(t);return;}navigator.clipboard.writeText(t).then(()=>{b.textContent='Copié ✓';setTimeout(()=>b.textContent='Copier la liste',1500);},()=>{b.textContent='Copie impossible';});};
+ const x=$('#otclr');if(x)x.onclick=()=>{cur.outil={};queue();render();};}
+
+/* ===================== SAUVEGARDE ===================== */
+const lsSet=(k,v)=>{localStorage.setItem(k,v);scheduleBackup();};
+let bkT=null;
+const canAutoBk=()=>!!(window.Android&&window.Android.saveBackup);
+const bkGet=k=>{try{return localStorage.getItem(k)||'';}catch(_){return '';}};
+const bkSetMeta=(k,v)=>{try{localStorage.setItem(k,v);}catch(_){}};
+function backupData(){return{havret:2,app:'Havret Chantier',date:new Date().toISOString(),chantiers:list,params:P,compta:cpt,ouvriers:OUV.list,clients:CLI.list,stock:STK.list,photos:PH.list};}
+function scheduleBackup(){if(!canAutoBk())return;clearTimeout(bkT);bkT=setTimeout(doBackup,4000);}
+function doBackup(){if(!canAutoBk())return false;try{const r=window.Android.saveBackup(`havret-sauvegarde-${today()}.json`,JSON.stringify(backupData()));if(String(r).startsWith('ok')){bkSetMeta('havret-lastbk',new Date().toISOString());return true;}}catch(_){}return false;}
+const fdt=s=>{if(!s)return 'jamais';const d=new Date(s);return d.toLocaleDateString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric'})+' à '+d.toLocaleTimeString('fr-CH',{hour:'2-digit',minute:'2-digit'});};
+const sentOld=()=>{const s=bkGet('havret-lastsend');return !s||(Date.now()-new Date(s))/864e5>7;};
+function bkBanner(){if(!canAutoBk())return '';return sentOld()&&(list.length||cpt.length)?`<div class="warn">Sauvegarde automatique sur le téléphone : ${fdt(bkGet('havret-lastbk'))}. Pense à <b>envoyer une copie hors du téléphone</b> (e-mail, Drive) au moins une fois par semaine. <button class="btn sm" type="button" id="bksend" style="min-height:34px;margin-left:6px">Envoyer maintenant</button></div>`:`<p class="note">Sauvegarde automatique : ${fdt(bkGet('havret-lastbk'))}</p>`;}
+function bkSend(){doBackup();if(window.Android&&window.Android.shareBackup){const r=window.Android.shareBackup();if(String(r).startsWith('ok')){bkSetMeta('havret-lastsend',new Date().toISOString());return;}}
+ const t=JSON.stringify(backupData());if(t.length<400000&&window.Android&&window.Android.share){window.Android.share(t);bkSetMeta('havret-lastsend',new Date().toISOString());}else navigator.clipboard.writeText(t).then(()=>{bkSetMeta('havret-lastsend',new Date().toISOString());alertBox('Sauvegarde copiée : colle-la dans un e-mail ou une note pour la garder.');},()=>alertBox('Impossible de copier ici.'));}
+function bkSection(){return `<h3 style="margin-top:4px">Sauvegarde</h3>${canAutoBk()?`<p class="note">Automatique après chaque modification, dans <b>Téléchargements / Havret Chantier</b> sur ce téléphone (un fichier par jour, 14 jours gardés). Dernière : ${fdt(bkGet('havret-lastbk'))}. Dernier envoi hors du téléphone : ${fdt(bkGet('havret-lastsend'))}.</p>`:`<p class="note">${local?'Données enregistrées sur cet appareil.':'Tes données sont enregistrées en ligne avec ton compte Claude.'} Tu peux garder une copie à part.</p>`}
+ <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${canAutoBk()?'<button class="btn sm" type="button" id="bknow">Sauvegarder maintenant</button>':''}<button class="btn gh sm" type="button" id="bksend2">${canAutoBk()?'Envoyer une copie (e-mail, Drive…)':'Copier une sauvegarde'}</button><label class="btn gh sm filebtn">Restaurer depuis un fichier<input type="file" accept=".json,application/json,text/plain" id="bkfile"></label><button class="btn gh sm" type="button" id="bkpaste">Coller une sauvegarde</button></div>`;}
+function bindBk(d){if(d.querySelector('#bknow'))d.querySelector('#bknow').onclick=()=>{const ok=doBackup();alertBox(ok?'Sauvegarde enregistrée dans Téléchargements / Havret Chantier.':'La sauvegarde a échoué.');};
+ d.querySelector('#bksend2').onclick=()=>{d.close();bkSend();};
+ d.querySelector('#bkfile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{d.close();askRestore(r.result);};r.readAsText(f);};
+ d.querySelector('#bkpaste').onclick=()=>{d.innerHTML=`<h2>Coller une sauvegarde</h2><textarea class="t" id="bk" style="min-height:160px"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn gh sm" type="button" id="bno">Annuler</button><button class="btn sm" type="button" id="bok">Continuer</button></div>`;d.querySelector('#bno').onclick=()=>d.close();d.querySelector('#bok').onclick=()=>{const t=d.querySelector('#bk').value;d.close();askRestore(t);};};}
+function askRestore(txt){let o;try{o=JSON.parse(txt);if(!o||!o.havret)throw 0;}catch(_){alertBox("Ce fichier n'est pas une sauvegarde Havret Chantier.");return;}
+ const n=(o.chantiers||o.list||[]).length,d=$('#dlg');
+ d.innerHTML=`<h2>Restaurer la sauvegarde</h2><p style="margin-top:8px">Sauvegarde du ${o.date?fdt(o.date):'(date inconnue)'} : ${n} chantier${n>1?'s':''}, ${(o.compta||[]).length} écriture${(o.compta||[]).length>1?'s':''} comptable${(o.compta||[]).length>1?'s':''}, ${(o.clients||[]).length} client${(o.clients||[]).length>1?'s':''}, ${(o.stock||[]).length} article${(o.stock||[]).length>1?'s':''} en stock, ${(o.photos||[]).length} photo${(o.photos||[]).length>1?'s':''}.</p>
+ <p class="note"><b>Ajouter</b> garde tes données actuelles et ajoute ce qui manque. <b>Tout remplacer</b> efface les données actuelles.</p>
+ <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn gh sm" type="button" id="rno">Annuler</button><button class="btn gh sm" type="button" id="rrep" style="color:var(--accd)">Tout remplacer</button><button class="btn sm" type="button" id="radd">Ajouter</button></div>`;d.showModal();
+ $('#rno').onclick=()=>d.close();$('#radd').onclick=async()=>{d.close();await restoreData(o,false);};$('#rrep').onclick=async()=>{d.close();await restoreData(o,true);};}
+async function restoreData(o,replace){
+ const sets=[['chantiers',o.chantiers||o.list||[]],['compta',o.compta||[]],['ouvriers',o.ouvriers||[]],['clients',o.clients||[]],['stock',o.stock||[]],['photos',o.photos||[]]];
+ const get=n=>n==='chantiers'?list:n==='compta'?cpt:{ouvriers:OUV,clients:CLI,stock:STK,photos:PH}[n].list;
+ const put=(n,a)=>{if(n==='chantiers')list=a;else if(n==='compta')cpt=a;else ({ouvriers:OUV,clients:CLI,stock:STK,photos:PH}[n].list=a);};
+ let added=0;
+ for(const [n,arr] of sets){const curA=get(n),ids=new Set(curA.map(x=>x.id)),neu=replace?arr:arr.filter(x=>x&&x.id&&!ids.has(x.id));added+=neu.length;
+  if(local){put(n,replace?arr:curA.concat(neu));try{localStorage.setItem(n==='chantiers'?LS:n==='compta'?LSC():LS+'-'+n,JSON.stringify(get(n)));}catch(_){alertBox('Mémoire du téléphone pleine pendant la restauration.');return;}}
+  else{if(replace)for(const x of curA)if(!arr.some(y=>y.id===x.id)){try{await db.doc(n+'/'+x.id).delete();}catch(_){}}for(const x of neu){try{await db.doc(n+'/'+x.id).set(x);}catch(_){}}}}
+ if(o.params&&(replace||!bkGet(LS+'-p'))){P=merge(o.params);await saveParams();}
+ cur=null;view='ch';render();scheduleBackup();alertBox(replace?'Données restaurées.':`${added} élément${added>1?'s':''} ajouté${added>1?'s':''}.`);}
 
 /* ===================== ÉCRANS ===================== */
-const NEW=()=>({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom:'',client:'',adresse:'',date:'',statut:'prevu',type:'plat',etat:'reno',L:12,W:8,dev:40,relMl:'',sys:'bitume',iso:160,evac:2,prot:'gravier',bas:'gauche',lift:'bas',garde:false,team:2,hday:8.5,start:'',seuils:0,seuilMl:0,trav:0,angles:0,docType:'devis',devisNo:'',factNo:'',factDate:'',acompteRecu:0,check:{},notes:'',updated:Date.now()});
+const NEW=()=>({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom:'',client:'',adresse:'',date:'',statut:'prevu',type:'plat',etat:'reno',L:12,W:8,surfO:'',pente:'support',penteP:2,canK:0,canP:1,acrH:'',photoKind:'toit',dev:40,relMl:'',sys:'bitume',iso:160,evac:2,prot:'gravier',bas:'gauche',lift:'bas',garde:false,team:2,hday:8.5,start:'',seuils:0,seuilMl:0,trav:0,angles:0,acc:{},docType:'devis',devisNo:'',factNo:'',factDate:'',acompteRecu:0,check:{},outil:{},outilsPlus:'',notes:'',updated:Date.now()});
 const STAT={prevu:"Prévu",encours:"En cours",termine:"Terminé"};
 
 function render(){
  $('#back').style.display=cur?'inline-flex':'none';
  $('#ttl').textContent=cur?(cur.nom||'Nouveau chantier'):'Havret Chantier';
- if(!cur){$('#foot').style.display='none';return renderList();}
+ if(!cur){$('#foot').style.display='none';return view==='cpt'?renderCompta():view==='ag'?renderAgenda():view==='cli'?renderClients():view==='stk'?renderStock():renderList();}
  renderChantier();
 }
 function renderList(){
  const L=[...list].sort((a,b)=>(b.updated||0)-(a.updated||0));
- app.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h1>Mes chantiers</h1><button class="btn" id="add" type="button">+ Nouveau chantier</button></div>
- ${local?`<div class="warn">Les chantiers sont enregistrés seulement sur cet appareil.</div>`:''}
- ${window.Android?`<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="exp">Sauvegarder mes chantiers</button><button class="btn gh sm" type="button" id="imp">Restaurer</button></div>`:''}<div class="list">${L.length?L.map(c=>{const g=geo(c);return `<button class="card item" data-open="${esc(c.id)}" type="button"><div><h3>${esc(c.nom||'Sans nom')}</h3><small>${esc([c.client,c.adresse].filter(Boolean).join(' · ')||TYPES[c.type])} · ${nf(g.A)} m² · ${SYS[c.sys]}</small></div><span class="st ${c.statut}">${STAT[c.statut]}</span></button>`;}).join(''):`<div class="card empty"><h2>Aucun chantier</h2><p style="margin-top:8px">Créez votre premier chantier : entrez la longueur, la largeur et le développé des relevés, l'application calcule le reste.</p></div>`}</div>`;
- if($('#exp'))$('#exp').onclick=()=>window.Android.share(JSON.stringify({havret:1,list,params:P}));
- if($('#imp'))$('#imp').onclick=()=>{const d=$('#dlg');d.innerHTML=`<h2>Restaurer</h2><p class="note">Collez ici le texte de sauvegarde.</p><textarea class="t" id="bk" style="min-height:140px"></textarea><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn gh sm" type="button" id="bno">Annuler</button><button class="btn sm" type="button" id="bok">Restaurer</button></div>`;d.showModal();$('#bno').onclick=()=>d.close();$('#bok').onclick=()=>{try{const o=JSON.parse($('#bk').value);if(!o.havret)throw 0;const ids=new Set(list.map(x=>x.id));list=[...list,...o.list.filter(x=>!ids.has(x.id))];if(o.params)P=merge(o.params);localStorage.setItem(LS,JSON.stringify(list));localStorage.setItem(LS+'-p',JSON.stringify(P));d.close();render();}catch(_){$('#bk').style.borderColor='var(--acc)';}};};
+ app.innerHTML=navTop()+`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px"><h1>Mes chantiers</h1><button class="btn" id="add" type="button">+ Nouveau chantier</button></div>
+ ${local&&!canAutoBk()?`<div class="warn">Les chantiers sont enregistrés seulement sur cet appareil.</div>`:''}${bkBanner()}
+ ${(()=>{const D=devisStats();return D.n?`<div class="kpi" style="margin-top:12px"><div><span>Devis en attente</span><b>${D.att}</b></div><div><span>Montant en attente HT</span><b>${chf(D.attHT)}</b></div><div><span>Taux de réussite</span><b>${D.rate==null?'—':nf(D.rate*100)+' %'}</b></div><div style="background:${D.old.length?'var(--acc)':'var(--pet)'}"><span>À relancer</span><b>${D.old.length}</b></div></div>`:'';})()}
+ ${window.Android?`<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="exp">Envoyer une sauvegarde</button><button class="btn gh sm" type="button" id="imp">Restaurer</button></div>`:''}<div class="list">${L.length?L.map(c=>{const g=geo(c);return `<button class="card item" data-open="${esc(c.id)}" type="button"><div><h3>${esc(c.nom||'Sans nom')}</h3><small>${esc([c.client,c.adresse].filter(Boolean).join(' · ')||TYPES[c.type])} · ${nf(g.A)} m² · ${SYS[c.sys]}</small></div><span class="st ${c.statut}">${STAT[c.statut]}</span></button>`;}).join(''):`<div class="card empty"><h2>Aucun chantier</h2><p style="margin-top:8px">Créez votre premier chantier : entrez la longueur, la largeur et le développé des relevés, l'application calcule le reste.</p></div>`}</div>`;
+ bindNav();if($('#bksend'))$('#bksend').onclick=()=>{bkSend();render();};
+ if($('#exp'))$('#exp').onclick=()=>{bkSend();render();};
+ if($('#imp'))$('#imp').onclick=openParams;
  $('#add').onclick=()=>{cur=NEW();tab="metres";persist();render();};
 }
 const sel=(id,obj,v)=>`<select class="t" id="${id}">${Object.entries(obj).map(([k,n])=>`<option value="${k}" ${String(v)===String(k)?'selected':''}>${n}</option>`).join('')}</select>`;
@@ -382,12 +2122,13 @@ const fld=(id,label,v,o={})=>`<label class="f">${label}${o.hint?` <small>${o.hin
 
 function renderChantier(){
  const c=cur,g=geo(c),pl=plan(c);
- const TABS={metres:"Métrés",chiffrage:"Chiffrage",materiel:"Matériel",planning:"Planning",palettes:"Palettes",methode:"Méthode",controles:"Contrôles",doc:"Devis / Facture"};
+ const TABS={metres:"Métrés",suivi:"Suivi",chiffrage:"Chiffrage",materiel:"Matériel",planning:"Planning",palettes:"Palettes",methode:"Méthode",controles:"Contrôles",doc:"Devis / Facture"};
  let h=`<div class="kpi"><div><span>Surface</span><b>${nf(g.A)} m²</b></div><div><span>Relevés</span><b>${nf(g.rel,1)} ml</b></div><div><span>Durée (${pl.team} pers.)</span><b>${nf(pl.days.length)} j</b></div><div><span>Prix de vente HT</span><b>${chf(cost(c).ht)}</b></div></div>
  <nav class="tabs" role="tablist">${Object.entries(TABS).map(([k,n])=>`<button type="button" role="tab" data-tab="${k}" class="${tab===k?'on':''}" aria-selected="${tab===k}">${n}</button>`).join('')}</nav><div class="sec">`;
  if(tab==="metres")h+=vMetres(c,g);
+ if(tab==="suivi")h+=vSuivi(c);
  if(tab==="chiffrage")h+=vCost(c);
- if(tab==="materiel")h+=vMat(c);
+ if(tab==="materiel")h+=vMat(c)+vOutils(c);
  if(tab==="palettes")h+=vPal(c);
  if(tab==="methode")h+=vMeth(c,pl);
  if(tab==="planning")h+=vPlan(c,pl);
@@ -395,12 +2136,14 @@ function renderChantier(){
  if(tab==="doc")h+=vDoc(c);
  app.innerHTML=h+'</div>';
  const f=$('#foot');f.style.display='flex';f.innerHTML=`<div><small>${esc(TYPES[c.type])} · ${SYS[c.sys]}</small><b>${chf(cost(c).ht)} HT · ${pl.days.length} j</b></div><button class="btn sm" type="button" id="copy">${window.Android?'Envoyer la commande':'Copier la commande'}</button>`;
- $('#copy').onclick=copyOrder;
+ $('#copy').onclick=copyOrder;bindOutils();
+ if(tab==='suivi')bindSuivi(c);
+ if($('#stkout'))$('#stkout').onclick=()=>stockOut(c);
 }
-function vPhoto(c){return `<div class="card" style="border:2px dashed var(--pet2)"><h2>Photo du toit</h2><p class="note" style="margin-top:4px">Prenez le toit en photo, entrez les côtés plus bas : l'analyse remplit la composition et l'application calcule tout.</p>
+function vPhoto(c){return `<div class="card" style="border:2px dashed var(--pet2)"><h2>Photo du toit ou du plan</h2><div class="seg" role="group" aria-label="Type de photo"><button type="button" data-pk="toit" class="${c.photoKind!=='plan'?'on':''}">Photo du toit</button><button type="button" data-pk="plan" class="${c.photoKind==='plan'?'on':''}">Plan de toiture</button></div><p class="note" style="margin-top:8px">${c.photoKind==='plan'?'Photographiez le plan bien à plat, cotes lisibles : l\'analyse relève les dimensions, la surface, les relevés, les évacuations et les accessoires.':''}</p><p class="note" style="margin-top:4px">Prenez le toit en photo, entrez les côtés plus bas : l'analyse remplit la composition et l'application calcule tout.</p>
  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><label class="btn sm filebtn">Prendre une photo<input type="file" accept="image/*" capture="environment" data-photo="1"></label><label class="btn gh sm filebtn">Galerie<input type="file" accept="image/*" multiple data-photo="1"></label></div>
  <div class="thumbs" id="thumbs">${photos.map(p=>`<img src="${p.url}" alt="Photo du chantier">`).join('')}</div>
- ${photos.length?`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" type="button" id="analyse">Analyser ${photos.length>1?'les '+photos.length+' photos':'la photo'}</button><button class="btn gh sm" type="button" id="clearph">Effacer</button></div>`:''}
+ ${photos.length?`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" type="button" id="analyse">${c.photoKind==='plan'?'Lire le plan':'Analyser '+(photos.length>1?'les '+photos.length+' photos':'la photo')}</button><button class="btn gh sm" type="button" id="clearph">Effacer</button></div>`:''}
  <p class="note" id="pstat">${pstat}</p></div>
  ${c.ai?`<div class="card sec ai"><h2>Analyse de la photo</h2><p style="margin-top:6px">${esc(c.ai.resume)}</p>
  ${[['Ce qu\'on voit',c.ai.obs],['Défauts et risques',c.ai.risques],['Pour être conforme (SIA 271)',c.ai.conf],['Conseils d\'exécution',c.ai.conseils]].filter(x=>x[1]&&x[1].length).map(x=>`<h3>${x[0]}</h3><ul>${x[1].map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}
@@ -410,29 +2153,34 @@ function vMetres(c,g){return vPhoto(c)+`<div class="card sec"><h2>Le chantier</h
  <label class="f">Statut${sel('statut',STAT,c.statut)}</label></div></div>
  <div class="card sec"><h2>Dimensions</h2><div class="g2" style="margin-top:12px">
  ${fld('L',c.type==='mur'?'Longueur du mur (m)':'Longueur (m)',c.L,{num:1})}${fld('W',c.type==='mur'?'Hauteur enterrée (m)':'Largeur (m)',c.W,{num:1})}
+ ${fld('surfO','Surface réelle (m²)',c.surfO,{num:1,ph:'= longueur × largeur',hint:'si le toit n\'est pas rectangulaire'})}
  ${c.type==='mur'?'':fld('dev','Développé des relevés (cm)',c.dev,{num:1,hint:'remontée + retour sur l\'acrotère'})}
  ${c.type==='mur'?'':fld('relMl','Longueur des relevés (ml)',c.relMl,{num:1,ph:'Périmètre : '+nf(2*((+c.L||0)+(+c.W||0)),1),hint:'vide = tout le périmètre'})}
  </div></div>
  <div class="card sec"><h2>Raccords et détails</h2><p class="note" style="margin-top:4px">Portes-fenêtres, traversées (pieds de garde-corps, tuyaux) et angles : traités en résine armée, quel que soit le système.</p><div class="g2" style="margin-top:12px">
  ${fld('seuils','Portes-fenêtres (seuils)',c.seuils,{num:1})}${fld('seuilMl','Largeur totale des seuils (ml)',c.seuilMl,{num:1})}${fld('trav','Traversées (pièces)',c.trav,{num:1})}${fld('angles','Angles rentrants/sortants',c.angles,{num:1})}</div></div>
+ ${c.type==='mur'?'':`<div class="card sec"><h2>Accessoires et points singuliers</h2><p class="note" style="margin-top:4px">Laisser vide = valeur proposée (trop-pleins et pare-gravier calculés d'après les naissances).</p><div class="g2" style="margin-top:12px">${ACC.map(([k,l,u])=>`<label class="f">${l} (${u})<input class="t n" type="number" inputmode="decimal" min="0" step="any" data-acc="${k}" value="${(c.acc||{})[k]??''}" placeholder="${accQ({...c,acc:{}},k)||0}"></label>`).join('')}</div></div>`}
+ ${vTaper(c)}
  <div class="card sec"><h2>Composition</h2><div class="g2" style="margin-top:12px">
  <label class="f">Type d'ouvrage${sel('type',TYPES,c.type)}</label>
  <label class="f">Support${sel('etat',{neuf:"Neuf",reno:"Rénovation (dépose)"},c.etat)}</label>
  <label class="f">Système${sel('sys',c.type==='mur'?{bitume:SYS.bitume,resine:SYS.resine}:SYS,c.sys)}</label>
  ${c.type==='mur'?'':`<label class="f">Isolation PIR${sel('iso',{0:"Sans",100:"100 mm",120:"120 mm",140:"140 mm",160:"160 mm",180:"180 mm",200:"200 mm",240:"240 mm"},c.iso)}</label>
- <label class="f">Protection${sel('prot',PROT,c.prot)}</label>${fld('evac',"Évacuations (pièces)",c.evac,{num:1})}`}
+ <label class="f">Protection${sel('prot',PROT,c.prot)}</label>${fld('evac',"Naissances verticales EP (pièces)",c.evac,{num:1})}`}
  </div></div>
  ${c.type==='mur'?'':`<div class="card sec"><h2>Organisation</h2><div class="g2" style="margin-top:12px">
  <label class="f">Côté point bas (évacuations)${sel('bas',SIDES,c.bas)}</label><label class="f">Côté levage (grue / monte-charge)${sel('lift',SIDES,c.lift)}</label>
  ${fld('team','Équipe (personnes)',c.team,{num:1})}${fld('hday','Heures par jour',c.hday,{num:1})}
  <label class="chk" style="border:0"><input type="checkbox" id="garde" ${c.garde?'checked':''}><span>Garde-corps ou acrotère protecteur sur tout le périmètre</span></label></div></div>`}
+ ${vNormes(c)}
  <div class="card sec"><label class="f">Notes<textarea class="t" id="notes">${esc(c.notes)}</textarea></label></div>
  <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="dup">Dupliquer</button><button class="btn gh sm" type="button" id="del" style="color:var(--accd)">Supprimer</button></div>`;}
 function vMat(c){const M=materials(c);let cat='',rows='',kg=0;
  for(const m of M){if(m.cat!==cat){cat=m.cat;rows+=`<tr class="cat"><td colspan="3">${cat}</td></tr>`;}kg+=m.kg;
-  rows+=`<tr><td>${m.name}<br><small style="color:var(--mut)">${nf(m.qty,m.unit==='t'||m.unit==='m³'?1:0)} ${/^[a-zé]{3,}$/i.test(m.unit)?plu(m.unit,Math.round(m.qty)):m.unit}</small></td><td class="r"><b>${nf(m.packN)}</b></td><td>${plu(m.pack,m.packN)}<br><small style="color:var(--mut)">${chf(m.cost)}</small></td></tr>`;}
+  rows+=`<tr><td>${m.name}<br><small style="color:var(--mut)">${nf(m.qty,m.unit==='t'||m.unit==='m³'?1:0)} ${/^[a-zé]{3,}$/i.test(m.unit)?plu(m.unit,Math.round(m.qty)):m.unit}</small></td><td class="r"><b>${nf(m.packN,Number.isInteger(m.packN)?0:1)}</b></td><td>${plu(m.pack,m.packN)}<br><small style="color:var(--mut)">${chf(m.cost)}</small>${stockFor(m.pid,c)?`<br><small style="color:var(--ok);font-weight:600">En stock${c.stockUsed&&c.stockUsed[m.pid]?' (réservé)':''} : ${nf(stockFor(m.pid,c),1)} → à commander : ${nf(Math.max(0,m.packN-stockFor(m.pid,c)),1)}</small>`:''}</td></tr>`;}
  return `<div class="card"><h2>Liste de matériel</h2><p class="note" style="margin-top:4px">Quantités avec ${P.recouv} % de recouvrement et ${P.chute} % de chute, relevés compris (développé ${nf(c.dev)} cm). Conditionnements modifiables dans ⚙.</p>
  <table style="margin-top:10px"><thead><tr><th>Article</th><th class="r">Qté</th><th>Conditionnement</th></tr></thead><tbody>${rows}</tbody></table>
+ ${STK.list.length?`<div style="margin-top:12px"><button class="btn gh sm" type="button" id="stkout">${c.stockOut?'Stock déjà sorti le '+fd(c.stockOut)+' · ressortir':'Sortir du stock pour ce chantier'}</button></div>`:''}
  <p style="margin-top:12px;font-weight:600">Poids total livré : ${nf(kg/1000,1)} t · Achat matériel : ${chf(M.reduce((s,m)=>s+m.cost,0))} HT</p></div>`;}
 function vPal(c){
  if(c.type==="mur")return `<div class="card"><h2>Livraison</h2><p style="margin-top:8px">Pour des murs enterrés, faites livrer au pied de la fouille, côté accès, à l'abri de l'eau et des engins. Matériel de la journée seulement dans la fouille.</p></div>`;
@@ -459,7 +2207,7 @@ function vMeth(c,pl){const g=geo(c),bas=SIDES[c.bas||'gauche'].toLowerCase();
  <li><b>Un poseur, un aide</b> : l'aide prépare et déroule le lé suivant pendant que le poseur soude.</li>
  <li><b>Relevés en fin de surface courante</b>, sauf s'il pleut : alors fermez d'abord les relevés de la zone ouverte.</li>
  <li><b>Météo</b> : surface sèche obligatoire. Gardez ${c.sys==='resine'?'les journées tempérées pour la résine':'une bâche et des lests à portée de main'}.</li></ul></div>`;}
-function vCost(c){const k=cost(c),rows=(a)=>a.map(r=>`<tr><td>${r[0]}</td><td class="r">${r[1]}</td></tr>`).join('');
+function vCost(c){const reel=cpt.filter(e=>e.chantier===c.id&&e.kind!=='rec'),rHT=reel.reduce((s,e)=>s+(+e.ttc||0)-(+e.tva||0),0),k=cost(c),rows=(a)=>a.map(r=>`<tr><td>${r[0]}</td><td class="r">${r[1]}</td></tr>`).join('');
  const ok=k.parJour>=P.objJour;
  return `<div class="kpi"><div><span>Prix de vente HT</span><b>${chf(k.ht)}</b></div><div><span>Prix au m² HT</span><b>${chf(k.m2)}</b></div><div><span>Marge nette</span><b>${chf(k.marge)}</b></div><div style="background:${ok?'var(--ok)':'var(--acc)'}"><span>Marge par jour</span><b>${chf(k.parJour)}</b></div></div>
  ${ok?'':`<div class="warn">Marge par jour sous votre objectif (${chf(P.objJour)}). Pistes : équipe de 3 pour raccourcir le chantier, monter la marge, ou revoir le système proposé.</div>`}
@@ -472,6 +2220,7 @@ function vCost(c){const k=cost(c),rows=(a)=>a.map(r=>`<tr><td>${r[0]}</td><td cl
  <tr class="cat"><td colspan="2">Synthèse</td></tr>
  ${rows([["Coûts directs",chf(k.mat+k.mo+k.log)],[`Frais généraux ${nf(P.fg)} %`,chf(k.fg)],["<b>Prix de revient</b>",`<b>${chf(k.rev)}</b>`],[`Marge ${nf(P.marge)} %`,chf(k.marge)],["<b>Prix de vente HT</b>",`<b>${chf(k.ht)}</b>`],[`TVA ${nf(P.tva,1)} %`,chf(k.tva)],["<b>Total TTC</b>",`<b>${chf(k.ttc)}</b>`]])}
  </tbody></table><p class="note">Prix d'achat, taux horaire, frais et marge réglables dans ⚙. Le prix de vente inclut tout : c'est le montant à mettre dans l'offre.</p></div>
+ <div class="card sec"><h3>Dépenses réelles</h3><p style="margin-top:6px">${reel.length?`${reel.length} dépense${reel.length>1?'s':''} enregistrée${reel.length>1?'s':''} : <b>${chf(rHT)} HT</b>, contre ${chf(k.mat+k.log)} prévus en matériel et logistique (${rHT<=k.mat+k.log?'<span style="color:var(--ok)">dans le budget</span>':'<span style="color:var(--accd)">dépassement de '+chf(rHT-k.mat-k.log)+'</span>'}).`:'Aucune dépense liée à ce chantier. Dans Comptabilité, choisis ce chantier sur tes tickets pour suivre le budget réel.'}</p></div>
  <div class="card sec"><h3>Quelle équipe est la plus rentable ?</h3><table style="margin-top:8px"><thead><tr><th>Équipe</th><th class="r">Durée</th><th class="r">Marge / jour</th></tr></thead><tbody>${[2,3,4].map(n=>{const x=cost({...c,team:n});return `<tr${n==(+c.team||2)?' style="font-weight:700"':''}><td>${n} personnes</td><td class="r">${x.jours} j</td><td class="r" style="color:${x.parJour>=P.objJour?'var(--ok)':'inherit'}">${chf(x.parJour)}</td></tr>`;}).join('')}</tbody></table><p class="note">Même nombre d'heures, mais un chantier plus court libère l'équipe pour le suivant : c'est la marge par jour qui compte.</p></div>
  <div class="card sec"><h3>Répartition du prix</h3><div class="bars" style="margin-top:10px">${[["Matériel",k.mat],["Main-d'œuvre",k.mo],["Logistique",k.log],["Frais généraux",k.fg],["Marge",k.marge]].map(x=>`<div><span>${x[0]}</span><i style="width:${Math.max(1,x[1]/k.ht*100)}%;background:${x[0]==='Marge'?'var(--ok)':'var(--pet2)'}"></i><span class="r">${nf(x[1]/k.ht*100)} %</span></div>`).join('')}</div></div>`;}
 function vPlan(c,pl){
@@ -494,12 +2243,13 @@ function vPlan(c,pl){
 const today=()=>{const d=new Date();return d.toISOString().slice(0,10);};
 const fd=s=>{if(!s)return '';const d=new Date(s+'T12:00');return isNaN(d)?s:d.toLocaleDateString('fr-CH',{day:'2-digit',month:'long',year:'numeric'});};
 function vDoc(c){
- const E=P.ent,k=cost(c),PO=postes(c),isF=c.docType==='facture',yr=new Date().getFullYear();
+ if(c.docType==='rapport'||c.docType==='regie')return vDocOther(c);
+ const E=P.ent,k=cost(c),isF=c.docType==='facture',PO=docLines(c,isF),yr=new Date().getFullYear();
  if(!c.devisNo){E.nD=(+E.nD||0)+1;c.devisNo=`D-${yr}-${String(E.nD).padStart(3,'0')}`;c.devisDate=today();saveParams();queue();}
  if(isF&&!c.factNo){E.nF=(+E.nF||0)+1;c.factNo=`F-${yr}-${String(E.nF).padStart(3,'0')}`;c.factDate=today();saveParams();queue();}
  const sum=PO.reduce((s,p)=>s+p.tot,0),tva=sum*P.tva/100,ttc=sum+tva,acc=isF?(+c.acompteRecu||0):0,ech=(()=>{const d=new Date((c.factDate||today())+'T12:00');d.setDate(d.getDate()+(+E.jours||30));return d.toISOString().slice(0,10);})();
  const money=n=>nf(n,2);
- const ctrl=`<div class="card noprint"><div class="g2"><label class="f">Document${sel('docType',{devis:'Devis',facture:'Facture'},c.docType)}</label>
+ const ctrl=`<div class="card noprint"><div class="g2"><label class="f">Document${sel('docType',DOCT,c.docType)}</label>
   ${isF?fld('acompteRecu','Acompte déjà reçu TTC (CHF)',c.acompteRecu,{num:1}):''}</div>
   ${!E.adr||!E.tel?`<div class="warn">Complétez votre adresse, téléphone${isF?', IBAN':''} et n° TVA dans ⚙ → Mon entreprise.</div>`:''}
   ${!c.client?`<div class="warn">Indiquez le nom et l'adresse du client dans Métrés.</div>`:''}
@@ -524,32 +2274,35 @@ function vDoc(c){
   <li>Travaux exécutés selon la norme SIA 271 ; garanties selon la norme SIA 118.</li>
   <li>Non compris : ferblanterie et travaux de façade non mentionnés, échafaudage de façade, maçonnerie, reprise du support après dépose. Travaux imprévus facturés en régie à CHF ${nf(P.regie)}.–/h, après accord du client.</li></ul></div>
  <div class="dsig"><div>Lieu et date :<br><br>……………………………………</div><div>Bon pour accord, signature du client :<br><br>……………………………………</div></div>`}
+ ${isF?qrBillHTML(c,ttc-acc,c.factNo):''}
  <p class="dfoot">${isF?'Avec nos remerciements.':'Nous restons à votre disposition pour tout renseignement et vous remercions de votre confiance.'}<br><br>${esc(E.nom)}</p>
  </article>`;
  return ctrl+doc;}
 function docText(c){const el=document.getElementById('doc');return el?el.innerText:'';}
 const CHECK={"Avant":["Photos de l'existant prises","Pente contrôlée (minimum 1,5 %) et points bas repérés","Protection anti-chute en place (garde-corps, filets ou harnais)","Météo vérifiée pour toute la durée","Levage, accès et zone de stockage définis","Charge admissible de la dalle vérifiée pour les palettes","Matériel livré et contrôlé contre la commande"],
-"Pendant":["Support propre, sec, primaire sec","Pare-vapeur continu et remonté en périphérie","Isolation sans lacune, joints décalés","Évacuations posées avant les lés","Recouvrements dans le sens de l'écoulement","Relevés au développé prévu, angles renforcés","Trop-plein de sécurité en place","Chantier fermé et lesté chaque soir"],
+"Pendant":["Support propre, sec, primaire sec","Pare-vapeur continu et remonté en périphérie","Isolation sans lacune, joints décalés","Évacuations posées avant les lés","Recouvrements dans le sens de l'écoulement","Relevés au développé prévu, angles renforcés","Trop-pleins de sécurité en place et dégagés","Cols de cygne, ventilations et traversées raccordés","Cadres pare-gravier posés sur les naissances","Points d'ancrage et ligne de vie fixés et étanchés","Chantier fermé et lesté chaque soir"],
 "Fin":["Soudures contrôlées sur toute la longueur","Essai d'eau ou contrôle visuel des évacuations","Photos après travaux","Déchets évacués, évacuations nettoyées","Procès-verbal de réception signé"]};
 function vCtrl(c){let n=0,done=0;const h=Object.entries(CHECK).map(([k,a])=>`<div class="card sec"><h3>${k}</h3>${a.map(t=>{n++;const id='k'+n;if(c.check[id])done++;return `<label class="chk"><input type="checkbox" data-ck="${id}" ${c.check[id]?'checked':''}><span>${t}</span></label>`;}).join('')}</div>`).join('');
- return `<div class="card"><h2>Contrôles</h2><p style="margin-top:6px">${done} sur ${n} points validés</p><div style="height:8px;background:var(--con);border-radius:4px;margin-top:8px"><div style="height:8px;width:${done/n*100}%;background:var(--ok);border-radius:4px"></div></div></div>${h}`;}
+ return vNormes(c).replace('card sec','card')+`<div class="card sec"><h2>Contrôles</h2><p style="margin-top:6px">${done} sur ${n} points validés</p><div style="height:8px;background:var(--con);border-radius:4px;margin-top:8px"><div style="height:8px;width:${done/n*100}%;background:var(--ok);border-radius:4px"></div></div></div>${h}`;}
 
 function copyOrder(){const c=cur,M=materials(c),g=geo(c);
- const t=`COMMANDE – ${c.nom||'Chantier'}${c.adresse?' – '+c.adresse:''}\n${TYPES[c.type]} · ${nf(g.A)} m² · ${SYS[c.sys]}${+c.iso&&c.type!=='mur'?' · PIR '+c.iso+' mm':''}\n\n`+M.map(m=>`- ${m.name} : ${nf(m.packN)} ${plu(m.pack,m.packN)}`).join('\n')+`\n\nPoids total : ${nf(M.reduce((s,m)=>s+m.kg,0)/1000,1)} t\nLivraison : camion-grue`;
+ const t=`COMMANDE – ${c.nom||'Chantier'}${c.adresse?' – '+c.adresse:''}\n${TYPES[c.type]} · ${nf(g.A)} m² · ${SYS[c.sys]}${+c.iso&&c.type!=='mur'?' · PIR '+c.iso+' mm':''}\n\n`+M.map(m=>{const s=stockFor(m.pid,c),q=Math.max(0,m.packN-s);return q>0?`- ${m.name} : ${nf(q,Number.isInteger(q)?0:1)} ${plu(m.pack,q)}${s?` (${nf(s,1)} déjà en stock)`:''}`:null;}).filter(Boolean).join('\n')+`\n\nPoids total : ${nf(M.reduce((s,m)=>s+m.kg,0)/1000,1)} t\nLivraison : camion-grue`;
  const b=$('#copy');if(window.Android&&window.Android.share){window.Android.share(t);return;}navigator.clipboard.writeText(t).then(()=>{b.textContent='Copié ✓';setTimeout(()=>b.textContent='Copier la commande',1500);},()=>{b.textContent='Copie impossible';});}
 
 function openParams(){const d=$('#dlg');
  const num=(k,l,v)=>`<label class="f">${l}<input class="t n" type="number" step="any" min="0" data-p="${k}" value="${v}"></label>`;
- d.innerHTML=`<h2>Paramètres</h2><p class="note">Vos rendements et conditionnements. Ils s'appliquent à tous les chantiers.</p>
- <h3 style="margin-top:16px">Analyse photo (IA)</h3><div class="g2" style="margin-top:8px"><label class="f">Clé API Anthropic <small>console.anthropic.com</small><input class="t" type="password" data-ls="havret-key" autocomplete="off" value="${esc((()=>{try{return localStorage.getItem('havret-key')||''}catch(_){return ''}})())}"></label><label class="f">Modèle<input class="t" data-ls="havret-model" value="${esc((()=>{try{return localStorage.getItem('havret-model')||'claude-sonnet-5-5'}catch(_){return 'claude-sonnet-5-5'}})())}"></label></div><p class="note">La clé reste sur ce téléphone. Chaque analyse coûte quelques centimes.</p>
+ d.innerHTML=`<h2>Paramètres</h2><div class="card" style="margin-top:10px">${bkSection()}</div><p class="note" style="margin-top:12px">Vos rendements et conditionnements. Ils s'appliquent à tous les chantiers.</p>
+ <h3 style="margin-top:16px">Fixations : entraxes (cm)</h3><div class="g2" style="margin-top:8px">${num('espSolin','Solin (chevilles à frapper)',P.espSolin)}${num('espRive','Profil de rive (vis)',P.espRive)}${num('espTole','Tôle colaminée (vis)',P.espTole)}${num('espPatte','Pattes de couvertine',P.espPatte)}</div><h3 style="margin-top:16px">Outillage : toujours emporter</h3><label class="f" style="margin-top:8px">Un outil par ligne, ajouté à la liste de chaque chantier<textarea class="t" data-ob="1" style="min-height:80px" placeholder="Ex. : Échelle 3 plans&#10;Caisse à outils&#10;Glacière">${esc(P.outilsBase||'')}</textarea></label><h3 style="margin-top:16px">Analyse photo (IA)</h3><div class="g2" style="margin-top:8px"><label class="f">Clé API Anthropic <small>console.anthropic.com</small><input class="t" type="password" data-ls="havret-key" autocomplete="off" value="${esc((()=>{try{return localStorage.getItem('havret-key')||''}catch(_){return ''}})())}"></label><label class="f">Modèle<input class="t" data-ls="havret-model" value="${esc((()=>{try{return localStorage.getItem('havret-model')||'claude-sonnet-5-5'}catch(_){return 'claude-sonnet-5-5'}})())}"></label></div><p class="note">La clé reste sur ce téléphone. Chaque analyse coûte quelques centimes.</p>
  <h3 style="margin-top:16px">Mon entreprise (devis et factures)</h3><div class="g2" style="margin-top:8px">${[['nom','Nom'],['adr','Rue et n°'],['npa','NPA Localité'],['tel','Téléphone'],['mail','E-mail'],['tva','N° TVA (CHE-…)'],['iban','IBAN']].map(([k,l])=>`<label class="f">${l}<input class="t" data-e="${k}" value="${esc(P.ent[k]||'')}"></label>`).join('')}${[['acompte','Acompte (%)'],['jours','Délai de paiement (jours)'],['valid','Validité du devis (jours)']].map(([k,l])=>`<label class="f">${l}<input class="t n" type="number" data-e="${k}" value="${P.ent[k]}"></label>`).join('')}${num('regie','Taux régie (CHF/h)',P.regie)}</div>
+ <h3 style="margin-top:16px">Comptabilité</h3><div class="g2" style="margin-top:8px"><label class="f">Assujetti à la TVA<select class="t" data-c="assuj"><option value="1" ${P.cpt.assuj?'selected':''}>Oui</option><option value="0" ${!P.cpt.assuj?'selected':''}>Non</option></select></label><label class="f">Méthode de décompte<select class="t" data-c="meth"><option value="eff" ${P.cpt.meth==='eff'?'selected':''}>Effective</option><option value="tdfn" ${P.cpt.meth==='tdfn'?'selected':''}>Taux de la dette fiscale nette</option></select></label><label class="f">Taux TDFN (%) <small>attribué par l'AFC</small><input class="t n" type="number" step="0.1" min="0" data-c="tdfn" value="${esc(P.cpt.tdfn)}"></label></div>
  <h3 style="margin-top:16px">Coûts et marge</h3><div class="g2" style="margin-top:8px">${num('tauxH','Coût horaire complet (salaire + charges + frais fixes, CHF/h)',P.tauxH)}${num('fg','Frais généraux sur matériel et logistique (%)',P.fg)}${num('marge','Marge (%)',P.marge)}${num('objJour','Objectif de marge par jour (CHF)',P.objJour)}${num('grue','Camion-grue (CHF/livraison)',P.grue)}${num('depl','Déplacement (CHF/jour/2 pers.)',P.depl)}${num('gcMl','Garde-corps location (CHF/ml)',P.gcMl)}${num('tva','TVA (%)',P.tva)}</div>
  <h3 style="margin-top:16px">Prix d'achat HT (CHF)</h3><div class="g2" style="margin-top:8px">${Object.entries(PRIXN).map(([k,l])=>num('prix.'+k,l,P.prix[k])).join('')}</div>
+ <h3 style="margin-top:16px">Accessoires : prix d'achat (CHF) et heures de pose</h3><div class="g2" style="margin-top:8px">${ACC.map(([k,l,u])=>`<label class="f">${l}<span style="display:flex;gap:8px"><input class="t n" type="number" step="any" min="0" data-ap="${k}" value="${P.acc[k].p}" aria-label="Prix ${l}"><input class="t n" type="number" step="any" min="0" data-ah="${k}" value="${P.acc[k].h}" aria-label="Heures ${l}"></span><small>CHF / ${u} · h / ${u}</small></label>`).join('')}</div>
  <h3 style="margin-top:16px">Rendements (par personne)</h3><div class="g2" style="margin-top:8px">${Object.entries(PRODN).map(([k,l])=>num('prod.'+k,l,P.prod[k])).join('')}</div>
- <h3 style="margin-top:16px">Matériaux</h3><div class="g2" style="margin-top:8px">${num('recouv','Recouvrement des lés (%)',P.recouv)}${num('chute','Chute (%)',P.chute)}${num('primaire','Primaire (l/m²)',P.primaire)}${num('pvRoul','Pare-vapeur m²/rouleau',P.pvRoul)}${num('b1Roul','Bitume 1re couche m²/rouleau',P.b1Roul)}${num('b2Roul','Bitume ardoisé m²/rouleau',P.b2Roul)}${num('b1Pal','Rouleaux bitume / palette',P.b1Pal)}${num('fpoRoul','FPO m²/rouleau',P.fpoRoul)}${num('gazM2','m² soudés par bouteille 33 kg',P.gazM2)}${num('resKg','Résine kg/m²',P.resKg)}${num('gravEp','Gravier épaisseur (cm)',P.gravEp)}${num('isoPalH','Hauteur palette isolation (m)',P.isoPalH)}${num('isoLay','Panneaux isolation par rang',P.isoLay)}${num('pvPal','Rouleaux pare-vapeur / palette',P.pvPal)}${num('b2Pal','Rouleaux ardoisés / palette',P.b2Pal)}</div>
+ <h3 style="margin-top:16px">Matériaux</h3><div class="g2" style="margin-top:8px">${num('recouv','Recouvrement des lés (%)',P.recouv)}${num('chute','Chute (%)',P.chute)}${num('primaire','Primaire (l/m²)',P.primaire)}${num('pvRoul','Pare-vapeur m²/rouleau',P.pvRoul)}${num('b1Roul','Bitume 1re couche m²/rouleau',P.b1Roul)}${num('b2Roul','Bitume ardoisé m²/rouleau',P.b2Roul)}${num('b1Pal','Rouleaux bitume / palette',P.b1Pal)}${num('fpoRoul','FPO m²/rouleau',P.fpoRoul)}${num('gazM2','m² soudés par bouteille 33 kg',P.gazM2)}${num('resKg','Résine kg/m²',P.resKg)}${num('gravEp','Gravier épaisseur (cm)',P.gravEp)}${num('taperSup','Supplément éléments de pente PIR (%)',P.taperSup)}${num('isoPalH','Hauteur palette isolation (m)',P.isoPalH)}${num('isoLay','Panneaux isolation par rang',P.isoLay)}${num('pvPal','Rouleaux pare-vapeur / palette',P.pvPal)}${num('b2Pal','Rouleaux ardoisés / palette',P.b2Pal)}</div>
  <div style="display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap"><button class="btn gh sm" type="button" id="preset">Valeurs par défaut</button><button class="btn" type="button" id="pclose">Fermer</button></div>`;
- d.showModal();
- d.oninput=e=>{if(e.target.dataset.ls){try{localStorage.setItem(e.target.dataset.ls,e.target.value.trim());}catch(_){}return;}if(e.target.dataset.e){const k=e.target.dataset.e;P.ent[k]=e.target.type==='number'?+e.target.value:e.target.value;return;}const k=e.target.dataset.p;if(!k)return;const v=+e.target.value;if(!(v>0))return;if(k.startsWith('prod.'))P.prod[k.slice(5)]=v;else if(k.startsWith('prix.'))P.prix[k.slice(5)]=v;else P[k]=v;};
+ d.showModal();bindBk(d);
+ d.oninput=e=>{if(e.target.dataset.ls){try{localStorage.setItem(e.target.dataset.ls,e.target.value.trim());}catch(_){}return;}if(e.target.dataset.c){const k=e.target.dataset.c;P.cpt[k]=k==='assuj'?e.target.value==='1':e.target.value;return;}if(e.target.dataset.ap){P.acc[e.target.dataset.ap].p=+e.target.value||0;return;}if(e.target.dataset.ah){P.acc[e.target.dataset.ah].h=+e.target.value||0;return;}if(e.target.dataset.ob!=null){P.outilsBase=e.target.value;return;}if(e.target.dataset.e){const k=e.target.dataset.e;P.ent[k]=e.target.type==='number'?+e.target.value:e.target.value;return;}const k=e.target.dataset.p;if(!k)return;const v=+e.target.value;if(!(v>0))return;if(k.startsWith('prod.'))P.prod[k.slice(5)]=v;else if(k.startsWith('prix.'))P.prix[k.slice(5)]=v;else P[k]=v;};
  $('#pclose').onclick=()=>{d.close();saveParams();render();};
  $('#preset').onclick=()=>{P=JSON.parse(JSON.stringify(DEF));d.close();saveParams();render();};
 }
@@ -568,17 +2321,18 @@ const pick=(v,ok,d)=>ok.includes(String(v))?String(v):d;
 async function analyse(){
  const c=cur,el=()=>document.getElementById('pstat');pstat='<span class="spin"></span>Analyse en cours, environ 20 secondes…';el().innerHTML=pstat;
  if(!await getSample()){pstat="L'analyse photo n'est pas disponible dans cette fenêtre (ouvrez l'application sur claude.ai dans un navigateur). Remplissez la composition à la main.";render();return;}
- const g=geo(c);
- const prompt=`Tu es chef de chantier expert en étanchéité de toitures plates en Suisse romande (entreprise Havret Étanchéité). Analyse ${photos.length} photo(s) d'un chantier${g.A?` dont les dimensions saisies sont ${nf(g.L,1)} m × ${nf(g.W,1)} m`:''}.
+ const g=geo(c),isPlan=c.photoKind==='plan';
+ const planTxt=isPlan?`IMPORTANT : la ou les images sont un PLAN DE TOITURE (vue en plan, coupe ou détail), pas une photo. Lis les cotes écrites (en m, cm ou mm, converties en mètres). Donne en plus dans le JSON : "longueur_m", "largeur_m" (rectangle englobant), "surface_m2" (surface réelle à étancher, en déduisant les trémies et en additionnant les parties si la forme est en L ou découpée), "releves_ml" (longueur totale des acrotères et murs périphériques, y compris autour des lanterneaux et édicules), "acrotere_cm" (hauteur d'acrotère si indiquée, sinon null), "pente_pct" (pente indiquée sur le plan, sinon null), "trop_pleins" (nombre). Compte toutes les naissances, trop-pleins, cols de cygne, ventilations, lanterneaux, gaines et sorties dessinés ou légendés. Si une cote est illisible, mets null et signale-le dans "risques".\n`:'';
+ const prompt=planTxt+`Tu es chef de chantier expert en étanchéité de toitures plates en Suisse romande (entreprise Havret Étanchéité). Analyse ${photos.length} photo(s) d'un chantier${g.A?` dont les dimensions saisies sont ${nf(g.L,1)} m × ${nf(g.W,1)} m`:''}.
 Détermine la composition à réaliser selon les règles de l'art et la norme SIA 271:2021 (pente minimale 1,5 %, pare-vapeur sous isolation, relevés au-dessus de la couche de protection, évacuations avec trop-plein de sécurité, protection anti-chute). Ne cite aucun chiffre de norme dont tu n'es pas sûr. Une photo ne montre pas les couches cachées : reste prudent et dis ce qu'il faut vérifier.
 Réponds UNIQUEMENT avec un objet JSON valide :
-{"type":"plat|terrasse|vert|mur","etat":"neuf|reno","systeme":"bitume|fpo|epdm|resine","isolation_mm":0|100|120|140|160|180|200|240,"protection":"aucune|gravier|dalles|vege","evacuations":nombre,"garde_corps":true|false,"developpe_cm":nombre ou null,"portes_fenetres":nombre,"seuils_ml":nombre ou null,"traversees":nombre,"angles":nombre,
+{"type":"plat|terrasse|vert|mur","etat":"neuf|reno","systeme":"bitume|fpo|epdm|resine","isolation_mm":0|100|120|140|160|180|200|240,"protection":"aucune|gravier|dalles|vege","evacuations":nombre,"garde_corps":true|false,"developpe_cm":nombre ou null,"portes_fenetres":nombre,"seuils_ml":nombre ou null,"traversees":nombre,"angles":nombre,"accessoires":{"naissL":nombre,"cdc":nombre,"vent":nombre,"aer":nombre,"lant":nombre,"chem":nombre,"pied":nombre,"ancr":nombre,"jd_ml":nombre,"couv_ml":nombre,"chen_ml":nombre},
 "resume":"2 phrases pour le chef d'équipe",
 "observations":["ce que tu vois : support, couches existantes, acrotères, évacuations, équipements, 2 à 5 éléments"],
 "risques":["défauts visibles et risques : cloques, flaches, fissures de relevés, végétation, accès, sécurité ; 1 à 5 éléments"],
 "conformite":["ce qu'il faut faire pour être conforme SIA 271 sur ce toit, 2 à 5 éléments"],
 "conseils":["conseils d'exécution concrets : par où commencer, détails délicats, organisation, 2 à 5 éléments"]}
-Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. "evacuations" = nombre visible, au moins 1 pour un toit. "developpe_cm" = hauteur estimée des relevés + retour si une échelle est visible, sinon null. "garde_corps" = vrai seulement si une protection collective existe sur tout le périmètre. "portes_fenetres" = portes-fenêtres donnant sur la surface ; "seuils_ml" = largeur totale estimée de leurs seuils (environ 1 m par porte si pas d'échelle) ; "traversees" = pieds de garde-corps, tuyaux, ventilations qui traversent l'étanchéité ; "angles" = angles rentrants et sortants des relevés. Signale dans "risques" un seuil trop bas pour un raccord correct. Écris en français.`;
+Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. "evacuations" = nombre visible, au moins 1 pour un toit. "developpe_cm" = hauteur estimée des relevés + retour si une échelle est visible, sinon null. "garde_corps" = vrai seulement si une protection collective existe sur tout le périmètre. "portes_fenetres" = portes-fenêtres donnant sur la surface ; "seuils_ml" = largeur totale estimée de leurs seuils (environ 1 m par porte si pas d'échelle) ; "traversees" = pieds de garde-corps, tuyaux, ventilations qui traversent l'étanchéité ; "angles" = angles rentrants et sortants des relevés. "accessoires" = éléments visibles : naissances latérales/gargouilles, cols de cygne (passages de câbles), ventilations, aérateurs, lanterneaux/coupoles, sorties de cheminée, pieds de garde-corps, points d'ancrage ; joints de dilatation, couvertines et chéneaux en mètres linéaires estimés ; 0 si absent. Signale dans "risques" un seuil trop bas pour un raccord correct. Écris en français.`;
  try{
   const r=await sample.json(prompt,{images:photos.map(p=>p.b),modelTier:'complex'});
   c.type=pick(r.type,Object.keys(TYPES),c.type);c.etat=pick(r.etat,['neuf','reno'],c.etat);
@@ -586,9 +2340,10 @@ Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. 
   c.iso=c.type==='mur'?0:+pick(r.isolation_mm,['0','100','120','140','160','180','200','240'],String(c.iso));
   c.prot=c.type==='mur'?'aucune':pick(r.protection,Object.keys(PROT),c.prot);
   if(+r.evacuations>=0&&r.evacuations!=null)c.evac=Math.min(20,Math.round(+r.evacuations));
-  c.garde=!!r.garde_corps;if(+r.portes_fenetres>=0){c.seuils=Math.round(+r.portes_fenetres)||0;c.seuilMl=+r.seuils_ml>0?Math.round(+r.seuils_ml*10)/10:c.seuils;}if(+r.traversees>=0)c.trav=Math.round(+r.traversees)||0;if(+r.angles>=0)c.angles=Math.round(+r.angles)||0;if(+r.developpe_cm>0&&+r.developpe_cm<200)c.dev=Math.round(+r.developpe_cm);
+  c.garde=!!r.garde_corps;if(+r.portes_fenetres>=0){c.seuils=Math.round(+r.portes_fenetres)||0;c.seuilMl=+r.seuils_ml>0?Math.round(+r.seuils_ml*10)/10:c.seuils;}if(+r.traversees>=0)c.trav=Math.round(+r.traversees)||0;if(+r.angles>=0)c.angles=Math.round(+r.angles)||0;if(r.accessoires&&typeof r.accessoires==='object'){c.acc=c.acc||{};const A2=r.accessoires;for(const k of ['naissL','cdc','vent','aer','lant','chem','pied','ancr'])if(+A2[k]>=0)c.acc[k]=Math.round(+A2[k]);for(const [k,j] of [['jd','jd_ml'],['couv','couv_ml'],['chen','chen_ml']])if(+A2[j]>=0)c.acc[k]=Math.round(+A2[j]*10)/10;}if(+r.developpe_cm>0&&+r.developpe_cm<200)c.dev=Math.round(+r.developpe_cm);
   const A=a=>Array.isArray(a)?a.slice(0,5).map(x=>String(x).slice(0,240)):[];
   c.ai={resume:String(r.resume||'').slice(0,400),obs:A(r.observations),risques:A(r.risques),conf:A(r.conformite),conseils:A(r.conseils)};
+  if(isPlan){if(+r.longueur_m>0)c.L=Math.round(+r.longueur_m*100)/100;if(+r.largeur_m>0)c.W=Math.round(+r.largeur_m*100)/100;if(+r.surface_m2>0){const s2=Math.round(+r.surface_m2*10)/10;c.surfO=Math.abs(s2-c.L*c.W)/(c.L*c.W||1)>0.03?s2:'';}if(+r.releves_ml>0)c.relMl=Math.round(+r.releves_ml*10)/10;if(+r.acrotere_cm>0)c.acrH=Math.round(+r.acrotere_cm);if(r.pente_pct!=null&&+r.pente_pct<1.5){c.pente='pentee';}if(+r.trop_pleins>=0&&r.trop_pleins!=null){c.acc=c.acc||{};c.acc.tp=Math.round(+r.trop_pleins);}}
   pstat='';persist();render();
  }catch(e){pstat=e&&e.code==='nokey'?"Ajoutez votre clé API Anthropic dans ⚙ (section Analyse photo).":e&&e.code==='api'?"Erreur de l'analyse : "+esc(e.message||''):e&&e.code==='rate_limited'?"Trop de demandes : réessayez dans une minute.":e&&e.code==='not_granted'?"Analyse non autorisée.":"L'analyse n'a pas abouti. Réessayez avec une photo plus nette ou plus large.";render();}
 }
@@ -596,9 +2351,12 @@ Règles : pour "mur", systeme bitume ou resine, isolation 0, protection aucune. 
 /* ===================== ÉVÉNEMENTS ===================== */
 app.addEventListener('input',e=>{if(!cur)return;const el=e.target,id=el.id;
  if(el.dataset.ck){cur.check[el.dataset.ck]=el.checked;queue();render();return;}
- if(!id||!(id in cur))return;
- const nums=['L','W','dev','team','hday','evac','iso','seuils','seuilMl','trav','angles','acompteRecu'];
+ if(el.dataset.ot){cur.outil=cur.outil||{};cur.outil[el.dataset.ot]=el.checked;queue();render();return;}
+ if(el.dataset.acc){cur.acc=cur.acc||{};cur.acc[el.dataset.acc]=el.value===''?'':Math.max(0,+el.value||0);queue();const k=document.querySelector('.kpi');if(k){const g=geo(cur),pl=plan(cur);k.innerHTML=`<div><span>Surface</span><b>${nf(g.A)} m²</b></div><div><span>Relevés</span><b>${nf(g.rel,1)} ml</b></div><div><span>Durée (${pl.team} pers.)</span><b>${nf(pl.days.length)} j</b></div><div><span>Prix de vente HT</span><b>${chf(cost(cur).ht)}</b></div>`;}return;}
+ if(!id||!(id in cur)&&!Object.keys(NEW()).includes(id)&&!['devisSt','devisSent','rapTrav','rapRes','recDate','recWho','regSel','start'].includes(id))return;
+ const nums=['surfO','penteP','canP','canK','acrH','L','W','dev','team','hday','evac','iso','seuils','seuilMl','trav','angles','acompteRecu'];
  cur[id]=el.type==='checkbox'?el.checked:id==='relMl'?(el.value===''?'':Math.max(0,+el.value)):nums.includes(id)?Math.max(0,+el.value||0):el.value;
+ if(id==='devisSt'&&['envoye','relance'].includes(el.value)&&!cur.devisSent)cur.devisSent=today();
  if(id==='type'&&cur.type==='mur'&&!['bitume','resine'].includes(cur.sys))cur.sys='bitume';
  queue();
  if(el.tagName==='SELECT'||el.type==='checkbox'){render();}else{const k=document.querySelector('.kpi');if(k){const g=geo(cur),pl=plan(cur);k.innerHTML=`<div><span>Surface</span><b>${nf(g.A)} m²</b></div><div><span>Relevés</span><b>${nf(g.rel,1)} ml</b></div><div><span>Durée (${pl.team} pers.)</span><b>${nf(pl.days.length)} j</b></div><div><span>Prix de vente HT</span><b>${chf(cost(cur).ht)}</b></div>`;}if(id==='nom')$('#ttl').textContent=cur.nom||'Nouveau chantier';}
@@ -606,8 +2364,9 @@ app.addEventListener('input',e=>{if(!cur)return;const el=e.target,id=el.id;
 app.addEventListener('click',e=>{
  const o=e.target.closest('[data-open]');if(o){const c=list.find(x=>x.id===o.dataset.open);if(c){cur=JSON.parse(JSON.stringify(c));if(!cur.check)cur.check={};tab="metres";render();window.scrollTo(0,0);}return;}
  const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;render();return;}
- if(e.target.id==='pdf'){const t=(cur.docType==='facture'?'Facture '+cur.factNo:'Devis '+cur.devisNo);if(window.Android&&window.Android.print){window.Android.print(t);}else{navigator.clipboard.writeText(docText(cur)).then(()=>{e.target.textContent='Copié ✓';},()=>{e.target.textContent='Copie impossible';});}return;}
+ if(e.target.id==='pdf'){const t=((document.querySelector('#doc .dt')||{}).textContent||'Document').replace('N° ','');if(window.Android&&window.Android.print){window.Android.print(t);}else{navigator.clipboard.writeText(docText(cur)).then(()=>{e.target.textContent='Copié ✓';},()=>{e.target.textContent='Copie impossible';});}return;}
  if(e.target.id==='shdoc'){window.Android.share(docText(cur));return;}
+ const pk=e.target.closest('[data-pk]');if(pk){cur.photoKind=pk.dataset.pk;queue();render();return;}
  if(e.target.id==='analyse'){analyse();return;}
  if(e.target.id==='clearph'){photos=[];pstat='';render();return;}
  if(e.target.id==='dup'){const n={...JSON.parse(JSON.stringify(cur)),id:NEW().id,nom:(cur.nom||'Chantier')+' (copie)',check:{},statut:'prevu'};cur=n;persist();render();return;}
